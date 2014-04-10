@@ -1,0 +1,272 @@
+# 
+msgid ""
+msgstr "Content-Type: text/plain; charset=utf-8\n"
+
+msgctxt "error:account.account:"
+msgid ""
+"The Account \"%(account)s\" has configured the next Analytic Roots as "
+"Forbidden and Optional at once: %(roots)s."
+msgstr ""
+"El compte \"%(account)s\" té configurades les següents jerarquies "
+"analítiques com prohibides i opcionals a la vegada: %(roots)s."
+
+msgctxt "error:account.account:"
+msgid ""
+"The Account \"%(account)s\" has configured the next Analytic Roots as "
+"Required and Forbidden at once: %(roots)s."
+msgstr ""
+"El compte \"%(account)s\" té configurades les següents jerarquies "
+"analítiques com requerides i prohibides a la vegada: %(roots)s."
+
+msgctxt "error:account.account:"
+msgid ""
+"The Account \"%(account)s\" has configured the next Analytic Roots as "
+"Required and Optional at once: %(roots)s."
+msgstr ""
+"El compte \"%(account)s\" té configurades les següents jerarquies "
+"analítiques com requerides i opcionals a la vegada: %(roots)s."
+
+msgctxt "error:account.move.line:"
+msgid ""
+"The Move Line \"%(line)s\" is related to the Account \"%(account)s\" which "
+"is not configured for all Analytic hierarchies."
+msgstr ""
+"L'apunt \"%(line)s\" està associat al compte \"%(account)s\" el qual no està"
+" configurat per totes les jerarquies analítiques."
+
+msgctxt "error:account.move:"
+msgid ""
+"The Account Move \"%(move)s\" can't be posted because it doesn't have "
+"analytic lines but its Account is requires analytics for the next "
+"hierachies: %(roots)s."
+msgstr ""
+"L'assentament \"%(move)s\" no pot ser confirmat perque no té línies "
+"analítiques però el seu compte està configurat per requerir analítica per "
+"les següents jerarquies: %(roots)s."
+
+msgctxt "error:account.move:"
+msgid ""
+"The Account Move \"%(move)s\" can't be posted because the Analytic Lines of "
+"hierachy \"%(root)s\" related to Move Line \"%(line)s\" are not valid."
+msgstr ""
+"L'assentament \"%(move)s\" no pot ser confirmat perque les línies "
+"analítiques de la jerarquía \"%(root)s\" associades a l'apunt \"%(line)s\" "
+"no són valides."
+
+msgctxt "error:analytic_account.account:"
+msgid ""
+"The next accounts are configured as Forbidden and Optional for the Analytic "
+"Root \"%(root)s\": %(accounts)s."
+msgstr ""
+"Els següents comptes estàn configurats per tenir l'analítica prohibida i "
+"opcional a la jerarquia \"%(root)s\": %(accounts)s."
+
+msgctxt "error:analytic_account.account:"
+msgid ""
+"The next accounts are configured as Required and Forbidden for the Analytic "
+"Root \"%(root)s\": %(accounts)s."
+msgstr ""
+"Els següents comptes estàn configurats per tenir l'analítica requerida i "
+"prohibida a la jerarquia \"%(root)s\": %(accounts)s."
+
+msgctxt "error:analytic_account.account:"
+msgid ""
+"The next accounts are configured as Required and Optional for the Analytic "
+"Root \"%(root)s\": %(accounts)s."
+msgstr ""
+"Els següents comptes estàn configurats per tenir l'analítica requerida i "
+"opcional a la jerarquia \"%(root)s\": %(accounts)s."
+
+msgctxt "error:analytic_account.line:"
+msgid ""
+"Currency of analytic line \"%s\" is different from the one of the related "
+"move line."
+msgstr ""
+"La moneda de la línia analítica \"%s\" és diferent a la del seu apunt "
+"relacionat."
+
+msgctxt "error:analytic_account.line:"
+msgid ""
+"The Analytic Line \"%(line)s\" is related to an Account Move Line of Account"
+" \"%(account)s\" which has the analytics forbidden for the Line's Analytic "
+"hierarchy."
+msgstr ""
+"La línia analítica \"%(line)s\" està associada a un apunt del compte "
+"\"%(account)s\" el qual està configurat per tenir prohibida l'analítica per "
+"aquesta jerarquia."
+
+msgctxt "field:account.account,analytic_forbidden:"
+msgid "Analytic Forbidden"
+msgstr "Analítica prohibida"
+
+msgctxt "field:account.account,analytic_optional:"
+msgid "Analytic Optional"
+msgstr "Analítica opcional"
+
+msgctxt "field:account.account,analytic_pending_accounts:"
+msgid "Pending Accounts"
+msgstr "Comptes pendents"
+
+msgctxt "field:account.account,analytic_required:"
+msgid "Analytic Required"
+msgstr "Analítica requerida"
+
+msgctxt "field:analytic_account.account,analytic_forbidden:"
+msgid "Analytic Forbidden"
+msgstr "Analítica prohibida"
+
+msgctxt "field:analytic_account.account,analytic_optional:"
+msgid "Analytic Optional"
+msgstr "Analítica opcional"
+
+msgctxt "field:analytic_account.account,analytic_pending_accounts:"
+msgid "Pending Accounts"
+msgstr "Comptes pendents"
+
+msgctxt "field:analytic_account.account,analytic_required:"
+msgid "Analytic Required"
+msgstr "Analítica requerida"
+
+msgctxt "field:analytic_account.account-forbidden-account.account,account:"
+msgid "Account"
+msgstr "Compte"
+
+msgctxt ""
+"field:analytic_account.account-forbidden-account.account,analytic_account:"
+msgid "Analytic Account"
+msgstr "Compte analític"
+
+msgctxt ""
+"field:analytic_account.account-forbidden-account.account,create_date:"
+msgid "Create Date"
+msgstr "Data creació"
+
+msgctxt "field:analytic_account.account-forbidden-account.account,create_uid:"
+msgid "Create User"
+msgstr "Usuari creació"
+
+msgctxt "field:analytic_account.account-forbidden-account.account,id:"
+msgid "ID"
+msgstr "Identificador"
+
+msgctxt "field:analytic_account.account-forbidden-account.account,rec_name:"
+msgid "Name"
+msgstr "Nom"
+
+msgctxt "field:analytic_account.account-forbidden-account.account,write_date:"
+msgid "Write Date"
+msgstr "Data modificació"
+
+msgctxt "field:analytic_account.account-forbidden-account.account,write_uid:"
+msgid "Write User"
+msgstr "Usuari modificació"
+
+msgctxt "field:analytic_account.account-optional-account.account,account:"
+msgid "Account"
+msgstr "Compte"
+
+msgctxt ""
+"field:analytic_account.account-optional-account.account,analytic_account:"
+msgid "Analytic Account"
+msgstr "Compte analític"
+
+msgctxt "field:analytic_account.account-optional-account.account,create_date:"
+msgid "Create Date"
+msgstr "Data creació"
+
+msgctxt "field:analytic_account.account-optional-account.account,create_uid:"
+msgid "Create User"
+msgstr "Usuari creació"
+
+msgctxt "field:analytic_account.account-optional-account.account,id:"
+msgid "ID"
+msgstr "Identificador"
+
+msgctxt "field:analytic_account.account-optional-account.account,rec_name:"
+msgid "Name"
+msgstr "Nom"
+
+msgctxt "field:analytic_account.account-optional-account.account,write_date:"
+msgid "Write Date"
+msgstr "Data modificació"
+
+msgctxt "field:analytic_account.account-optional-account.account,write_uid:"
+msgid "Write User"
+msgstr "Usuari modificació"
+
+msgctxt "field:analytic_account.account-required-account.account,account:"
+msgid "Account"
+msgstr "Compte"
+
+msgctxt ""
+"field:analytic_account.account-required-account.account,analytic_account:"
+msgid "Analytic Account"
+msgstr "Compte analític"
+
+msgctxt "field:analytic_account.account-required-account.account,create_date:"
+msgid "Create Date"
+msgstr "Data creació"
+
+msgctxt "field:analytic_account.account-required-account.account,create_uid:"
+msgid "Create User"
+msgstr "Usuari creació"
+
+msgctxt "field:analytic_account.account-required-account.account,id:"
+msgid "ID"
+msgstr "Identificador"
+
+msgctxt "field:analytic_account.account-required-account.account,rec_name:"
+msgid "Name"
+msgstr "Nom"
+
+msgctxt "field:analytic_account.account-required-account.account,write_date:"
+msgid "Write Date"
+msgstr "Data modificació"
+
+msgctxt "field:analytic_account.account-required-account.account,write_uid:"
+msgid "Write User"
+msgstr "Usuari modificació"
+
+msgctxt "field:analytic_account.line,state:"
+msgid "State"
+msgstr "Estat"
+
+msgctxt "field:analytic_account.open_chart.start,posted:"
+msgid "Posted Moves"
+msgstr "Assentaments confirmats"
+
+msgctxt "help:analytic_account.open_chart.start,posted:"
+msgid "Show posted moves only"
+msgstr "Mostra només assentaments confirmats"
+
+msgctxt "model:analytic_account.account-forbidden-account.account,name:"
+msgid "Analytic Account - Account - Forbidden"
+msgstr "Compte analític - Compte - Prohibida"
+
+msgctxt "model:analytic_account.account-optional-account.account,name:"
+msgid "Analytic Account - Account - Optional"
+msgstr "Compte analític - Compte - Opcional"
+
+msgctxt "model:analytic_account.account-required-account.account,name:"
+msgid "Analytic Account - Account - Required"
+msgstr "Compte analític - Compte - Requerit"
+
+msgctxt "model:ir.ui.menu,name:menu_line_list"
+msgid "Analytic Lines"
+msgstr "Línies analítiques"
+
+msgctxt "selection:analytic_account.line,state:"
+msgid "Draft"
+msgstr "Esborrany"
+
+msgctxt "selection:analytic_account.line,state:"
+msgid "Valid"
+msgstr "Correcte"
+
+msgctxt "view:account.account:"
+msgid "Analytics Configuration"
+msgstr "Configuració analítica"
+
+msgctxt "view:analytic_account.account:"
+msgid "Accounts Analytics Configuration"
+msgstr "Configuració analítica en comptes"

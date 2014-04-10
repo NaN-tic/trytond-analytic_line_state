@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<data>
+    <xpath expr="/form/notebook/page[@id='general']" position="after">
+        <page name="analytic_required" string="Accounts Analytics Configuration">
+            <group id="configured_accounts" colspan="2" col="1" yfill="1">
+                <field name="analytic_required"/>
+                <field name="analytic_forbidden"/>
+                <field name="analytic_optional"/>
+            </group>
+            <field name="analytic_pending_accounts" colspan="2"/>
+        </page>
+    </xpath>
+</data>

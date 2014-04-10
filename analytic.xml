@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<tryton>
+    <data>
+        <!-- analytic_account.account -->
+        <record model="ir.ui.view" id="analytic_account_view_form">
+            <field name="model">analytic_account.account</field>
+            <field name="inherit" ref="analytic_account.account_view_form"/>
+            <field name="name">analytic_account_form</field>
+        </record>
+
+        <!-- analytic_account.line -->
+        <record model="ir.ui.view" id="analytic_line_view_form">
+            <field name="model">analytic_account.line</field>
+            <field name="inherit" ref="analytic_account.line_view_form"/>
+            <field name="name">analytic_line_form</field>
+        </record>
+
+        <record model="ir.ui.view" id="analytic_line_view_tree">
+            <field name="model">analytic_account.line</field>
+            <field name="inherit" ref="analytic_account.line_view_tree"/>
+            <field name="name">analytic_line_tree</field>
+        </record>
+
+        <!--<record model="ir.action.act_window" id="analytic_account.act_line_form">
+            <field name="search_value">[('create_date', '>=', DateTime(hour=0, minute=0, second=0, microsecond=0, delta_years=-1))]</field>
+        </record>
+
+        <record model="ir.action.act_window.domain"
+            id="act_line_form_domain_draft">
+            <field name="name">Draft</field>
+            <field name="sequence" eval="10"/>
+            <field name="domain">[('state', '=', 'draft')]</field>
+            <field name="act_window" ref="analytic_account.act_line_form"/>
+        </record>
+        <record model="ir.action.act_window.domain"
+            id="act_line_form_domain_valid">
+            <field name="name">Valid</field>
+            <field name="sequence" eval="20"/>
+            <field name="domain">[('state', '=', 'valid')]</field>
+            <field name="act_window" ref="analytic_account.act_line_form"/>
+        </record>
+        <record model="ir.action.act_window.domain"
+            id="act_line_form_domain_all">
+            <field name="name">All</field>
+            <field name="sequence" eval="30"/>
+            <field name="domain">[]</field>
+            <field name="act_window" ref="analytic_account.act_line_form"/>
+        </record>-->
+
+        <!-- analytic_account.open_chart.start -->
+        <record model="ir.ui.view" id="open_chart_start_view_form">
+            <field name="model">analytic_account.open_chart.start</field>
+            <field name="inherit" ref="analytic_account.open_chart_start_view_form"/>
+            <field name="name">open_chart_start_form</field>
+        </record>
+
+        <!-- menus -->
+        <menuitem parent="account.menu_entries"
+            action="analytic_account.act_line_form" id="menu_line_list"
+            sequence="20"/>
+    </data>
+</tryton>

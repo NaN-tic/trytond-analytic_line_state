@@ -1,0 +1,234 @@
+# The COPYRIGHT file at the top level of this repository contains the full
+# copyright notices and license terms.
+import logging
+import time
+
+from trytond.model import ModelView, fields
+from trytond.pool import Pool, PoolMeta
+from trytond.pyson import Eval
+
+__all__ = ['Account', 'Move', 'MoveLine']
+__metaclass__ = PoolMeta
+
+
+class Account:
+    __name__ = 'account.account'
+
+    analytic_required = fields.Many2Many(
+        'analytic_account.account-required-account.account', 'account',
+        'analytic_account', 'Analytic Required', domain=[
+            ('type', '=', 'root'),
+            ('id', 'not in', Eval('analytic_forbidden')),
+            ('id', 'not in', Eval('analytic_optional')),
+            ], depends=['analytic_forbidden', 'analytic_optional'])
+    analytic_forbidden = fields.Many2Many(
+        'analytic_account.account-forbidden-account.account', 'account',
+        'analytic_account', 'Analytic Forbidden', domain=[
+            ('type', '=', 'root'),
+            ('id', 'not in', Eval('analytic_required')),
+            ('id', 'not in', Eval('analytic_optional')),
+            ], depends=['analytic_required', 'analytic_optional'])
+    analytic_optional = fields.Many2Many(
+        'analytic_account.account-optional-account.account', 'account',
+        'analytic_account', 'Analytic Optional', domain=[
+            ('type', '=', 'root'),
+            ('id', 'not in', Eval('analytic_required')),
+            ('id', 'not in', Eval('analytic_forbidden')),
+            ], depends=['analytic_required', 'analytic_forbidden'])
+    analytic_pending_accounts = fields.Function(
+        fields.Many2Many('analytic_account.account', None, None,
+            'Pending Accounts', on_change_with=['analytic_required',
+                'analytic_forbidden', 'analytic_optional']),
+        'on_change_with_analytic_pending_accounts')
+
+    @classmethod
+    def __setup__(cls):
+        super(Account, cls).__setup__()
+        cls._error_messages.update({
+                'analytic_account_required_forbidden': (
+                    'The Account "%(account)s" has configured the next '
+                    'Analytic Roots as Required and Forbidden at once: '
+                    '%(roots)s.'),
+                'analytic_account_required_optional': (
+                    'The Account "%(account)s" has configured the next '
+                    'Analytic Roots as Required and Optional at once: '
+                    '%(roots)s.'),
+                'analytic_account_forbidden_optional': (
+                    'The Account "%(account)s" has configured the next '
+                    'Analytic Roots as Forbidden and Optional at once: '
+                    '%(roots)s.'),
+                })
+
+    def on_change_with_analytic_pending_accounts(self, name=None):
+        AnalyticAccount = Pool().get('analytic_account.account')
+
+        current_accounts = map(int, self.analytic_required)
+        current_accounts += map(int, self.analytic_forbidden)
+        current_accounts += map(int, self.analytic_optional)
+        pending_accounts = AnalyticAccount.search([
+                ('type', '=', 'root'),
+                ('id', 'not in', current_accounts),
+                ])
+        return map(int, pending_accounts)
+
+    def analytic_constraint(self, analytic_account):
+        if analytic_account.root in self.analytic_required:
+            return 'required'
+        elif analytic_account.root in self.analytic_forbidden:
+            return 'forbidden'
+        elif analytic_account.root in self.analytic_optional:
+            return 'optional'
+        return 'undefined'
+
+    @classmethod
+    def validate(cls, accounts):
+        super(Account, cls).validate(accounts)
+        for account in accounts:
+            account.check_analytic_accounts()
+
+    def check_analytic_accounts(self):
+        required = set(self.analytic_required)
+        forbidden = set(self.analytic_forbidden)
+        optional = set(self.analytic_optional)
+        if required & forbidden:
+            self.raise_user_error('analytic_account_required_forbidden', {
+                    'account': self.rec_name,
+                    'roots': ', '.join([a.rec_name
+                            for a in (required & forbidden)])
+                    })
+        if required & optional:
+            self.raise_user_error('analytic_account_required_optional', {
+                    'account': self.rec_name,
+                    'roots': ', '.join([a.rec_name
+                            for a in (required & optional)])
+                    })
+        if forbidden & optional:
+            self.raise_user_error('analytic_account_forbidden_optional', {
+                    'account': self.rec_name,
+                    'roots': ', '.join([a.rec_name
+                            for a in (forbidden & optional)])
+                    })
+
+
+class Move:
+    __name__ = 'account.move'
+
+    @classmethod
+    def __setup__(cls):
+        super(Move, cls).__setup__()
+        cls._error_messages.update({
+                'missing_analytic_lines': (
+                    'The Account Move "%(move)s" can\'t be posted because it '
+                    'doesn\'t have analytic lines but its Account is requires '
+                    'analytics for the next hierachies: %(roots)s.'),
+                'invalid_analytic_to_post_move': (
+                    'The Account Move "%(move)s" can\'t be posted because the '
+                    'Analytic Lines of hierachy "%(root)s" related to Move '
+                    'Line "%(line)s" are not valid.'),
+                })
+
+    @classmethod
+    @ModelView.button
+    def post(cls, moves):
+        super(Move, cls).post(moves)
+        for move in moves:
+            for line in move.lines:
+                if not line.analytic_lines and line.account.analytic_required:
+                    req_acc_names = [r.rec_name
+                        for r in line.account.analytic_required]
+                    cls.raise_user_error('missing_analytic_lines', {
+                            'move': move.rec_name,
+                            'roots': ', '.join(req_acc_names),
+                            })
+
+                for analytic_line in line.analytic_lines:
+                    constraint = line.account.analytic_constraint(
+                        analytic_line.account)
+                    if (constraint == 'required' and
+                            analytic_line.state != 'valid'):
+                        cls.raise_user_error('invalid_analytic_to_post_move', {
+                                'move': move.rec_name,
+                                'line': line.rec_name,
+                                'root': analytic_line.account.root.rec_name,
+                                })
+
+
+class MoveLine:
+    __name__ = 'account.move.line'
+
+    @classmethod
+    def __setup__(cls):
+        super(MoveLine, cls).__setup__()
+        cls._error_messages.update({
+                'account_analytic_not_configured': (
+                    'The Move Line "%(line)s" is related to the Account '
+                    '"%(account)s" which is not configured for all Analytic '
+                    'hierarchies.'),
+                })
+
+    @classmethod
+    def validate(cls, lines):
+        super(MoveLine, cls).validate(lines)
+        for line in lines:
+            line.check_account_analytic_configuration()
+
+    def check_account_analytic_configuration(self):
+        if self.account.analytic_pending_accounts:
+            self.raise_user_error('account_analytic_not_configured', {
+                    'line': self.rec_name,
+                    'account': self.account.rec_name,
+                    })
+
+    @classmethod
+    def validate_analytic_lines(cls, lines):
+        pool = Pool()
+        AnalyticLine = pool.get('analytic_account.line')
+
+        start_time = time.time()
+        todraft, tovalid = [], []
+        for line in lines:
+            analytic_lines_by_root = {}
+            for analytic_line in line.analytic_lines:
+                analytic_lines_by_root.setdefault(analytic_line.account.root,
+                    []).append(analytic_line)
+
+            line_balance = line.debit - line.credit
+            for root, analytic_lines in analytic_lines_by_root.items():
+                balance = sum((al.debit - al.credit) for al in analytic_lines)
+                if balance == line_balance:
+                    tovalid += [al for al in analytic_lines
+                        if al.state != 'valid']
+                else:
+                    todraft += [al for al in analytic_lines
+                        if al.state != 'draft']
+        if todraft:
+            AnalyticLine.write(todraft, {
+                    'state': 'draft',
+                    })
+        if tovalid:
+            AnalyticLine.write(tovalid, {
+                    'state': 'valid',
+                    })
+        logging.getLogger(cls.__name__).debug(
+            "validate_analytic_lines(): %s seconds"
+            % (time.time() - start_time))
+        return todraft + tovalid
+
+    @classmethod
+    def create(cls, vlist):
+        lines = super(MoveLine, cls).create(vlist)
+        cls.validate_analytic_lines(lines)
+
+    @classmethod
+    def write(cls, lines, vals):
+        super(MoveLine, cls).write(lines, vals)
+        cls.validate_analytic_lines(lines)
+
+    @classmethod
+    def delete(cls, lines):
+        AnalyticLine = Pool().get('analytic_account.line')
+        todraft_lines = [al for line in lines for al in line.analytic_lines]
+        super(MoveLine, cls).delete(lines)
+        AnalyticLine.write(todraft_lines, {
+                'state': 'draft',
+                })
