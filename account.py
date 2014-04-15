@@ -93,20 +93,20 @@ class Account:
         if required & forbidden:
             self.raise_user_error('analytic_account_required_forbidden', {
                     'account': self.rec_name,
-                    'roots': ', '.join([a.rec_name
-                            for a in (required & forbidden)])
+                    'roots': ', '.join(a.rec_name
+                        for a in (required & forbidden))
                     })
         if required & optional:
             self.raise_user_error('analytic_account_required_optional', {
                     'account': self.rec_name,
-                    'roots': ', '.join([a.rec_name
-                            for a in (required & optional)])
+                    'roots': ', '.join(a.rec_name
+                        for a in (required & optional))
                     })
         if forbidden & optional:
             self.raise_user_error('analytic_account_forbidden_optional', {
                     'account': self.rec_name,
-                    'roots': ', '.join([a.rec_name
-                            for a in (forbidden & optional)])
+                    'roots': ', '.join(a.rec_name
+                        for a in (forbidden & optional))
                     })
 
 
@@ -119,8 +119,8 @@ class Move:
         cls._error_messages.update({
                 'missing_analytic_lines': (
                     'The Account Move "%(move)s" can\'t be posted because it '
-                    'doesn\'t have analytic lines but its Account is requires '
-                    'analytics for the next hierachies: %(roots)s.'),
+                    'doesn\'t have analytic lines for the next required '
+                    'analytic hierachies: %(roots)s.'),
                 'invalid_analytic_to_post_move': (
                     'The Account Move "%(move)s" can\'t be posted because the '
                     'Analytic Lines of hierachy "%(root)s" related to Move '
@@ -133,15 +133,17 @@ class Move:
         super(Move, cls).post(moves)
         for move in moves:
             for line in move.lines:
+                required_roots = list(line.account.analytic_required[:])
                 if not line.analytic_lines and line.account.analytic_required:
-                    req_acc_names = [r.rec_name
-                        for r in line.account.analytic_required]
                     cls.raise_user_error('missing_analytic_lines', {
                             'move': move.rec_name,
-                            'roots': ', '.join(req_acc_names),
+                            'roots': ', '.join(r.rec_name
+                                for r in required_roots),
                             })
 
                 for analytic_line in line.analytic_lines:
+                    if analytic_line.account.root in required_roots:
+                        required_roots.remove(analytic_line.account.root)
                     constraint = line.account.analytic_constraint(
                         analytic_line.account)
                     if (constraint == 'required' and
@@ -151,6 +153,12 @@ class Move:
                                 'line': line.rec_name,
                                 'root': analytic_line.account.root.rec_name,
                                 })
+                if required_roots:
+                    cls.raise_user_error('missing_analytic_lines', {
+                            'move': move.rec_name,
+                            'roots': ', '.join(r.rec_name
+                                for r in required_roots),
+                            })
 
 
 class MoveLine:
@@ -193,7 +201,7 @@ class MoveLine:
                     []).append(analytic_line)
 
             line_balance = line.debit - line.credit
-            for root, analytic_lines in analytic_lines_by_root.items():
+            for analytic_lines in analytic_lines_by_root.values():
                 balance = sum((al.debit - al.credit) for al in analytic_lines)
                 if balance == line_balance:
                     tovalid += [al for al in analytic_lines
