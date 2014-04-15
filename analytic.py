@@ -284,6 +284,17 @@ class AnalyticLine:
         return 2
 
     @classmethod
+    def query_get(cls, table):
+        '''
+        Return SQL clause for analytic line depending of the context.
+        table is the SQL instance of the analytic_account_line table.
+        '''
+        clause = super(AnalyticLine, cls).query_get(table)
+        if Transaction().context.get('posted'):
+            clause &= table.state == 'posted'
+        return clause
+
+    @classmethod
     def validate(cls, lines):
         super(AnalyticLine, cls).validate(lines)
         for line in lines:
