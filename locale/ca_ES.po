@@ -51,7 +51,7 @@ msgid ""
 msgstr ""
 "L'assentament \"%(move)s\" no pot ser confirmat perque les línies "
 "analítiques de la jerarquía \"%(root)s\" associades a l'apunt \"%(line)s\" "
-"no són valides."
+"no són vàlides."
 
 msgctxt "error:analytic_account.account:"
 msgid ""
