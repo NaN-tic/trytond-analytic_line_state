@@ -23,6 +23,7 @@ class AnalyticAccount:
     analytic_required = fields.Many2Many(
         'analytic_account.account-required-account.account',
         'analytic_account', 'account', 'Analytic Required', domain=[
+            ('kind', '!=', 'view'),
             ('id', 'not in', Eval('analytic_forbidden')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
@@ -31,6 +32,7 @@ class AnalyticAccount:
     analytic_forbidden = fields.Many2Many(
         'analytic_account.account-forbidden-account.account',
         'analytic_account', 'account', 'Analytic Forbidden', domain=[
+            ('kind', '!=', 'view'),
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
@@ -39,6 +41,7 @@ class AnalyticAccount:
     analytic_optional = fields.Many2Many(
         'analytic_account.account-optional-account.account',
         'analytic_account', 'account', 'Analytic Optional', domain=[
+            ('kind', '!=', 'view'),
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_forbidden')),
             ], states={
@@ -77,6 +80,7 @@ class AnalyticAccount:
         current_accounts += map(int, self.analytic_forbidden)
         current_accounts += map(int, self.analytic_optional)
         pending_accounts = Account.search([
+                ('kind', '!=', 'view'),
                 ('id', 'not in', current_accounts),
                 ])
         return map(int, pending_accounts)

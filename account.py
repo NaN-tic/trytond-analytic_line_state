@@ -20,25 +20,34 @@ class Account:
             ('type', '=', 'root'),
             ('id', 'not in', Eval('analytic_forbidden')),
             ('id', 'not in', Eval('analytic_optional')),
-            ], depends=['analytic_forbidden', 'analytic_optional'])
+            ], states={
+            'invisible': Eval('kind') == 'view',
+            }, depends=['analytic_forbidden', 'analytic_optional', 'kind'])
     analytic_forbidden = fields.Many2Many(
         'analytic_account.account-forbidden-account.account', 'account',
         'analytic_account', 'Analytic Forbidden', domain=[
             ('type', '=', 'root'),
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_optional')),
-            ], depends=['analytic_required', 'analytic_optional'])
+            ], states={
+            'invisible': Eval('kind') == 'view',
+            }, depends=['analytic_required', 'analytic_optional', 'kind'])
     analytic_optional = fields.Many2Many(
         'analytic_account.account-optional-account.account', 'account',
         'analytic_account', 'Analytic Optional', domain=[
             ('type', '=', 'root'),
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_forbidden')),
-            ], depends=['analytic_required', 'analytic_forbidden'])
+            ], states={
+            'invisible': Eval('kind') == 'view',
+            }, depends=['analytic_required', 'analytic_forbidden', 'kind'])
     analytic_pending_accounts = fields.Function(
         fields.Many2Many('analytic_account.account', None, None,
-            'Pending Accounts', on_change_with=['analytic_required',
-                'analytic_forbidden', 'analytic_optional']),
+            'Pending Accounts', states={
+                'invisible': Eval('kind') == 'view',
+                }, depends=['kind'],
+            on_change_with=['analytic_required', 'analytic_forbidden',
+                'analytic_optional']),
         'on_change_with_analytic_pending_accounts')
 
     @classmethod
