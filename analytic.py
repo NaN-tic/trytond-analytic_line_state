@@ -215,7 +215,7 @@ class AnalyticLine:
             company_domain = old_domain.pop()
             cls.account.domain = [old_domain,
                 If(Bool(Eval('move_line', 0)),
-                    company_domain,
+                    [company_domain],
                     [()])
                 ]
             cls.account.depends.append('move_line')
