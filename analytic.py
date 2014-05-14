@@ -7,7 +7,7 @@ from sql.conditionals import Coalesce
 from trytond import backend
 from trytond.model import ModelSQL, ModelView, fields
 from trytond.pool import Pool, PoolMeta
-from trytond.pyson import Eval, Or, PYSONEncoder
+from trytond.pyson import Eval, Or, PYSONEncoder, If, Bool
 from trytond.transaction import Transaction
 from trytond.wizard import Wizard
 
@@ -210,6 +210,15 @@ class AnalyticLine:
             'required': Eval('state') != 'draft',
             'readonly': Eval('state') != 'draft',
             }
+        if not 'move_line' in cls.account.depends:
+            old_domain = cls.account.domain
+            company_domain = old_domain.pop()
+            cls.account.domain = [old_domain,
+                If(Bool(Eval('move_line', 0)),
+                    company_domain,
+                    [()])
+                ]
+            cls.account.depends.append('move_line')
         cls.currency_digits.on_change_with = ['currency']
 
         cls._error_messages.update({
@@ -248,7 +257,7 @@ class AnalyticLine:
 
         table = TableHandler(cursor, cls, module_name)
 
-        is_sqlite =  'backend.sqlite.table.TableHandler' in str(TableHandler)
+        is_sqlite = 'backend.sqlite.table.TableHandler' in str(TableHandler)
         # Migration from DB without this module
         #table.not_null_action('move_line', action='remove') don't execute the
         # action if the field is not defined in this module

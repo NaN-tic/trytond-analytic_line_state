@@ -358,11 +358,9 @@ def suite():
         'scenario_account_reconciliation_rst')
     for test in test_company.suite():
         if test not in suite and test.id().split('.')[-1] not in exclude_tests:
-            print "Adding company test '%s'" % test.id().split('.')[-1]
             suite.addTest(test)
     for test in test_account.suite():
         if test not in suite and test.id().split('.')[-1] not in exclude_tests:
-            print "Adding account test '%s'" % test.id().split('.')[-1]
             suite.addTest(test)
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestCase))
     return suite
