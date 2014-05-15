@@ -7,6 +7,7 @@ from .analytic import *
 
 def register():
     Pool.register(
+        Configuration,
         AnalyticAccount,
         AnalyticAccountAccountRequired,
         AnalyticAccountAccountForbidden,

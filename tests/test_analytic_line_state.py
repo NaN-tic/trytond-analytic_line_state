@@ -31,6 +31,7 @@ class TestCase(unittest.TestCase):
         self.analytic_account = POOL.get('analytic_account.account')
         self.analytic_line = POOL.get('analytic_account.line')
         self.company = POOL.get('company.company')
+        self.configuration = POOL.get('account.configuration')
         self.fiscalyear = POOL.get('account.fiscalyear')
         self.journal = POOL.get('account.journal')
         self.move = POOL.get('account.move')
@@ -54,30 +55,12 @@ class TestCase(unittest.TestCase):
                 context=CONTEXT) as transaction:
             company, = self.company.search([('rec_name', '=', 'B2CK')])
             currency = company.currency
-            revenue_expense = self.account.search([
-                    ('kind', 'in', ('revenue', 'expense')),
-                    ])
-            receivable_payable = self.account.search([
-                    ('kind', 'in', ('receivable', 'payable')),
-                    ])
-            other = self.account.search([
-                    ('kind', 'in', ('view', 'other')),
-                    ])
 
             root, = self.analytic_account.create([{
                         'name': 'Root',
                         'company': company.id,
                         'currency': currency.id,
                         'type': 'root',
-                        'analytic_required': [
-                            ('add', map(int, revenue_expense)),
-                            ],
-                        'analytic_forbidden': [
-                            ('add', map(int, receivable_payable)),
-                            ],
-                        'analytic_optional': [
-                            ('add', [a.id for a in other]),
-                            ],
                         },
                     ])
             self.analytic_account.create([{
@@ -108,14 +91,40 @@ class TestCase(unittest.TestCase):
                         },
                     ])
 
-            # Check all General accounts are configured
-            self.assertEqual(len(root.analytic_pending_accounts), 0)
             transaction.cursor.commit()
+
+    def configure_analytic_accounts(self):
+        revenue_expense = self.account.search([
+                ('kind', 'in', ('revenue', 'expense')),
+                ])
+        receivable_payable = self.account.search([
+                ('kind', 'in', ('receivable', 'payable')),
+                ])
+        other = self.account.search([
+                ('kind', 'in', ('view', 'other')),
+                ])
+        roots = self.analytic_account.search([
+                ('type', '=', 'root')
+                ])
+        self.analytic_account.write(roots, {
+                    'analytic_required': [
+                        ('add', map(int, revenue_expense)),
+                        ],
+                    'analytic_forbidden': [
+                        ('add', map(int, receivable_payable)),
+                        ],
+                    'analytic_optional': [
+                        ('add', [a.id for a in other]),
+                        ],
+                })
+        # Check all General accounts are configured
+        for root in roots:
+            self.assertEqual(len(root.analytic_pending_accounts), 0)
 
     def test0020account_constraints(self):
         'Test account configuration constraints'
-        with Transaction().start(DB_NAME, USER,
-                context=CONTEXT) as transaction:
+        with Transaction().start(DB_NAME, USER, context=CONTEXT):
+            self.configure_analytic_accounts()
             company, = self.company.search([('rec_name', '=', 'B2CK')])
             currency = company.currency
             fiscalyear, = self.fiscalyear.search([])
@@ -144,11 +153,11 @@ class TestCase(unittest.TestCase):
             project2, = self.analytic_account.search([
                     ('code', '=', 'P2'),
                     ])
-            root = project1.root
+            #root = project1.root
 
             # Can add account in required and forbidden
             #with self.assertRaises(UserError):
-            #    root.analytic_required = root.analytic_required + (receivable,)
+            #   root.analytic_required = root.analytic_required + (receivable,)
             #    root.save()
             ## Can add account in required and optional
             #with self.assertRaises(UserError):
@@ -156,7 +165,7 @@ class TestCase(unittest.TestCase):
             #    root.save()
             ## Can add account in forbidden and optional
             #with self.assertRaises(UserError):
-            #    root.analytic_optional = root.analytic_optional + (receivable,)
+            #   root.analytic_optional = root.analytic_optional + (receivable,)
             #    root.save()
 
             # Can create move with analytic in analytic required account and
@@ -218,12 +227,10 @@ class TestCase(unittest.TestCase):
             with self.assertRaises(UserError):
                 self.move.create([unexpected_analytic_vals])
 
-            transaction.cursor.rollback()
-
-    def test0020analytic_line_state(self):
+    def test0030analytic_line_state(self):
         'Test of analytic line workflow'
-        with Transaction().start(DB_NAME, USER,
-                context=CONTEXT) as transaction:
+        with Transaction().start(DB_NAME, USER, context=CONTEXT):
+            self.configure_analytic_accounts()
             company, = self.company.search([('rec_name', '=', 'B2CK')])
             currency = company.currency
             fiscalyear, = self.fiscalyear.search([])
@@ -341,7 +348,66 @@ class TestCase(unittest.TestCase):
             self.move.post([draft_move])
             self.assertEqual(draft_move.state, 'posted')
 
-            transaction.cursor.rollback()
+    def test0030account_configuration(self):
+        'Test account configuration configuration'
+        with Transaction().start(DB_NAME, USER, context=CONTEXT):
+            company, = self.company.search([('rec_name', '=', 'B2CK')])
+            currency = company.currency
+            root, = self.analytic_account.search([
+                    ('type', '=', 'root')
+                    ])
+            self.assertGreater(len(root.analytic_pending_accounts), 0)
+
+            fiscalyear, = self.fiscalyear.search([])
+            period = fiscalyear.periods[0]
+            journal_revenue, = self.journal.search([
+                    ('code', '=', 'REV'),
+                    ])
+            other, = self.account.search([
+                    ('kind', '=', 'other'),
+                    ], limit=1)
+            receivable, = self.account.search([
+                    ('kind', '=', 'receivable'),
+                    ])
+            project1, = self.analytic_account.search([
+                    ('code', '=', 'P1'),
+                    ])
+
+            values = [{
+                    'period': period.id,
+                    'journal': journal_revenue.id,
+                    'date': period.start_date,
+                    'lines': [
+                        ('create', [{
+                                    'account': other.id,
+                                    'credit': Decimal(30000),
+                                    'analytic_lines': [
+                                        ('create', [{
+                                                    'name': 'Contribution',
+                                                    'debit': Decimal(0),
+                                                    'credit': Decimal(30000),
+                                                    'currency': currency.id,
+                                                    'account': project1.id,
+                                                    'journal':
+                                                        journal_revenue.id,
+                                                    }]),
+                                        ],
+                                    }, {
+                                    'account': receivable.id,
+                                    'debit': Decimal(30000),
+                                    }]),
+                        ],
+                    }]
+            #Doesnt raise any error
+            move = self.move.create(values)
+            self.move.post(move)
+
+            self.configuration.write([], {
+                    'validate_analytic': True,
+                    })
+            with self.assertRaises(UserError):
+                move = self.move.create(values)
+                self.move.post(move)
 
 
 def suite():

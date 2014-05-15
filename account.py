@@ -7,8 +7,15 @@ from trytond.model import ModelView, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval
 
-__all__ = ['Account', 'Move', 'MoveLine']
+__all__ = ['Configuration', 'Account', 'Move', 'MoveLine']
 __metaclass__ = PoolMeta
+
+
+class Configuration:
+    __name__ = 'account.configuration'
+    validate_analytic = fields.Boolean('Validate Analytic',
+        help='If marked it will prevent to post a move to an account that '
+        'has Pending Analytic accounts.')
 
 
 class Account:
@@ -190,11 +197,15 @@ class MoveLine:
             line.check_account_analytic_configuration()
 
     def check_account_analytic_configuration(self):
-        if self.account.analytic_pending_accounts:
-            self.raise_user_error('account_analytic_not_configured', {
-                    'line': self.rec_name,
-                    'account': self.account.rec_name,
-                    })
+        pool = Pool()
+        Config = pool.get('account.configuration')
+        config = Config.get_singleton()
+        if config and config.validate_analytic:
+            if self.account.analytic_pending_accounts:
+                self.raise_user_error('account_analytic_not_configured', {
+                        'line': self.rec_name,
+                        'account': self.account.rec_name,
+                        })
 
     @classmethod
     def validate_analytic_lines(cls, lines):
@@ -235,6 +246,7 @@ class MoveLine:
     def create(cls, vlist):
         lines = super(MoveLine, cls).create(vlist)
         cls.validate_analytic_lines(lines)
+        return lines
 
     @classmethod
     def write(cls, lines, vals):
