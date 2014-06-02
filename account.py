@@ -2,6 +2,7 @@
 # copyright notices and license terms.
 import logging
 import time
+from itertools import chain
 
 from trytond.model import ModelView, fields
 from trytond.pool import Pool, PoolMeta
@@ -52,9 +53,7 @@ class Account:
         fields.Many2Many('analytic_account.account', None, None,
             'Pending Accounts', states={
                 'invisible': Eval('kind') == 'view',
-                }, depends=['kind'],
-            on_change_with=['analytic_required', 'analytic_forbidden',
-                'analytic_optional']),
+                }, depends=['kind']),
         'on_change_with_analytic_pending_accounts')
 
     @classmethod
@@ -75,6 +74,8 @@ class Account:
                     '%(roots)s.'),
                 })
 
+    @fields.depends('analytic_required', 'analytic_forbidden',
+            'analytic_optional')
     def on_change_with_analytic_pending_accounts(self, name=None):
         AnalyticAccount = Pool().get('analytic_account.account')
 
@@ -249,8 +250,9 @@ class MoveLine:
         return lines
 
     @classmethod
-    def write(cls, lines, vals):
-        super(MoveLine, cls).write(lines, vals)
+    def write(cls, *args):
+        super(MoveLine, cls).write(*args)
+        lines = list(chain(*args[::2]))
         cls.validate_analytic_lines(lines)
 
     @classmethod

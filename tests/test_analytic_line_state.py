@@ -53,7 +53,9 @@ class TestCase(unittest.TestCase):
         'Test creation of minimal analytic chart of accounts'
         with Transaction().start(DB_NAME, USER,
                 context=CONTEXT) as transaction:
-            company, = self.company.search([('rec_name', '=', 'B2CK')])
+            company, = self.company.search([
+                    ('rec_name', '=', 'Dunder Mifflin'),
+                    ])
             currency = company.currency
 
             root, = self.analytic_account.create([{
@@ -101,7 +103,7 @@ class TestCase(unittest.TestCase):
                 ('kind', 'in', ('receivable', 'payable')),
                 ])
         other = self.account.search([
-                ('kind', 'in', ('view', 'other')),
+                ('kind', '=', 'other'),
                 ])
         roots = self.analytic_account.search([
                 ('type', '=', 'root')
@@ -125,7 +127,9 @@ class TestCase(unittest.TestCase):
         'Test account configuration constraints'
         with Transaction().start(DB_NAME, USER, context=CONTEXT):
             self.configure_analytic_accounts()
-            company, = self.company.search([('rec_name', '=', 'B2CK')])
+            company, = self.company.search([
+                    ('rec_name', '=', 'Dunder Mifflin'),
+                    ])
             currency = company.currency
             fiscalyear, = self.fiscalyear.search([])
             period = fiscalyear.periods[0]
@@ -231,7 +235,9 @@ class TestCase(unittest.TestCase):
         'Test of analytic line workflow'
         with Transaction().start(DB_NAME, USER, context=CONTEXT):
             self.configure_analytic_accounts()
-            company, = self.company.search([('rec_name', '=', 'B2CK')])
+            company, = self.company.search([
+                    ('rec_name', '=', 'Dunder Mifflin'),
+                    ])
             currency = company.currency
             fiscalyear, = self.fiscalyear.search([])
             period = fiscalyear.periods[0]
@@ -351,7 +357,9 @@ class TestCase(unittest.TestCase):
     def test0030account_configuration(self):
         'Test account configuration configuration'
         with Transaction().start(DB_NAME, USER, context=CONTEXT):
-            company, = self.company.search([('rec_name', '=', 'B2CK')])
+            company, = self.company.search([
+                    ('rec_name', '=', 'Dunder Mifflin'),
+                    ])
             currency = company.currency
             root, = self.analytic_account.search([
                     ('type', '=', 'root')
