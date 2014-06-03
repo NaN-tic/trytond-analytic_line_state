@@ -3,16 +3,8 @@
 # copyright notices and license terms.
 import datetime
 import unittest
-import sys
-import os
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
-
-DIR = os.path.abspath(os.path.normpath(os.path.join(__file__,
-    '..', '..', '..', '..', '..', 'trytond')))
-if os.path.isdir(DIR):
-    sys.path.insert(0, os.path.dirname(DIR))
-
 import trytond.tests.test_tryton
 from trytond.exceptions import UserError
 from trytond.tests.test_tryton import (POOL, DB_NAME, USER, CONTEXT,
@@ -438,6 +430,3 @@ def suite():
             suite.addTest(test)
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestCase))
     return suite
-
-if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(suite())
