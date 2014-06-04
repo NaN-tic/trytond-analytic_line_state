@@ -51,8 +51,7 @@ class AnalyticAccount:
             'account.account', None, None, 'Pending Accounts', states={
                 'invisible': Eval('type') != 'root',
                 },
-            on_change_with=['analytic_required', 'analytic_forbidden',
-                'analytic_optional'], depends=['type']),
+            depends=['type']),
         'on_change_with_analytic_pending_accounts')
 
     @classmethod
@@ -73,6 +72,8 @@ class AnalyticAccount:
                     '%(accounts)s.'),
                 })
 
+    @fields.depends('analytic_required', 'analytic_forbidden',
+        'analytic_optional')
     def on_change_with_analytic_pending_accounts(self, name=None):
         Account = Pool().get('account.account')
 
