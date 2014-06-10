@@ -184,6 +184,16 @@ class MoveLine:
     @classmethod
     def __setup__(cls):
         super(MoveLine, cls).__setup__()
+        if not cls.analytic_lines.context:
+            cls.analytic_lines.context = {}
+        for name in ('debit', 'credit', 'journal', 'move', 'party',
+                'description', 'move_description'):
+            if not name in cls.analytic_lines.context:
+                cls.analytic_lines.context[name] = Eval(name)
+        if not 'date' in cls.analytic_lines.context:
+            cls.analytic_lines.context['date'] = (
+                Eval('_parent_move', {}).get('date')
+                )
         cls._error_messages.update({
                 'account_analytic_not_configured': (
                     'The Move Line "%(line)s" is related to the Account '

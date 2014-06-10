@@ -5,7 +5,7 @@ from sql.aggregate import Sum
 from sql.conditionals import Coalesce
 
 from trytond import backend
-from trytond.model import ModelSQL, ModelView, fields
+from trytond.model import Model, ModelSQL, ModelView, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, Or, PYSONEncoder, If, Bool
 from trytond.transaction import Transaction
@@ -221,6 +221,12 @@ class AnalyticLine:
                 ]
             cls.account.depends.append('move_line')
         cls.currency_digits.on_change_with = ['currency']
+        if not cls.move_line.on_change:
+            cls.move_line.on_change = []
+        for name in ['move_line', 'journal', 'name', 'party', 'debit',
+                'credit']:
+            if not name in cls.move_line.on_change:
+                cls.move_line.on_change.append(name)
 
         cls._error_messages.update({
                 'different_currency_move': ('Currency of analytic line "%s" '
@@ -292,10 +298,64 @@ class AnalyticLine:
     def default_state():
         return 'draft'
 
+    def default_move_line_field(field_name):
+        @staticmethod
+        def default_value():
+            return Transaction().context.get(field_name)
+        return default_value
+
+    default_debit = default_move_line_field('debit')
+    default_credit = default_move_line_field('credit')
+    default_journal = default_move_line_field('journal')
+    default_party = default_move_line_field('party')
+
+    @staticmethod
+    def default_date():
+        context = Transaction().context
+        value = context.get('date')
+        if value:
+            return value
+        if 'move' in context:
+            move = Pool().get('account.move')(context.get('move'))
+            return move.date
+
+    @staticmethod
+    def default_name():
+        context = Transaction().context
+        for name in ('description', 'move_description'):
+            value = context.get('description')
+            if value:
+                return value
+        if 'move' in context:
+            move = Pool().get('account.move')(context.get('move'))
+            return move.description
+
     def on_change_with_currency_digits(self, name=None):
         if self.currency:
             return self.currency.digits
         return 2
+
+    def on_change_move_line(self):
+        res = {
+            'journal': None,
+            'name': None,
+            'party': None,
+            }
+        if not self.move_line:
+            return res
+
+        res['date'] = self.move_line.move.date
+        if not self.debit:
+            res['debit'] = self.move_line.debit
+        if not self.credit:
+            res['credit'] = self.move_line.credit
+        if not self.journal:
+            res['journal'] = self.move_line.move.journal.id
+        if not self.party and self.move_line.party:
+            res['party'] = self.move_line.party.id
+        if not self.name:
+            res['name'] = self.move_line.description
+        return res
 
     @classmethod
     def query_get(cls, table):
