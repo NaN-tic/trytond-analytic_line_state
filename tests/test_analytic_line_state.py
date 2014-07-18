@@ -172,6 +172,7 @@ class TestCase(unittest.TestCase):
                             'credit': Decimal(30000),
                             'currency': currency.id,
                             'account': project1.id,
+                            'date': period.start_date,
                             'journal': journal_revenue.id,
                             }]),
                 ]
@@ -274,6 +275,7 @@ class TestCase(unittest.TestCase):
                                                     'debit': Decimal(0),
                                                     'credit': Decimal(30000),
                                                     'currency': currency.id,
+                                                    'date': today,
                                                     'account': project1.id,
                                                     'journal':
                                                         journal_revenue.id,
@@ -314,6 +316,7 @@ class TestCase(unittest.TestCase):
                 if l.account.kind == 'expense'][0]
             line1, = self.analytic_line.create([{
                         'name': 'Materials purchase',
+                        'credit': Decimal(0),
                         'debit': Decimal(600),
                         'currency': currency.id,
                         'account': project1.id,
@@ -329,6 +332,7 @@ class TestCase(unittest.TestCase):
 
             line2, = self.analytic_line.create([{
                         'name': 'Salaries',
+                        'credit': Decimal(0),
                         'debit': Decimal(500),
                         'currency': currency.id,
                         'account': project1.id,
@@ -388,6 +392,7 @@ class TestCase(unittest.TestCase):
                                                     'credit': Decimal(30000),
                                                     'currency': currency.id,
                                                     'account': project1.id,
+                                                    'date': period.start_date,
                                                     'journal':
                                                         journal_revenue.id,
                                                     }]),
