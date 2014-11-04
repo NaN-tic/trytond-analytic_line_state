@@ -27,6 +27,7 @@ class TestCase(unittest.TestCase):
         self.fiscalyear = POOL.get('account.fiscalyear')
         self.journal = POOL.get('account.journal')
         self.move = POOL.get('account.move')
+        self.party = POOL.get('party.party')
         self.sequence = POOL.get('ir.sequence')
 
     def test0005views(self):
@@ -122,6 +123,7 @@ class TestCase(unittest.TestCase):
             company, = self.company.search([
                     ('rec_name', '=', 'Dunder Mifflin'),
                     ])
+            party, = self.party.create([{'name': 'Party'}])
             currency = company.currency
             fiscalyear, = self.fiscalyear.search([])
             period = fiscalyear.periods[0]
@@ -186,6 +188,7 @@ class TestCase(unittest.TestCase):
                                 'credit': Decimal(30000),
                                 'analytic_lines': analytic_lines_value,
                                 }, {
+                                'party': party.id,
                                 'account': receivable.id,
                                 'debit': Decimal(30000),
                                 }]),
@@ -203,6 +206,7 @@ class TestCase(unittest.TestCase):
                             'credit': Decimal(30000),
                             'analytic_lines': [],
                             }, {
+                            'party': party.id,
                             'account': receivable.id,
                             'debit': Decimal(30000),
                             }]),
@@ -231,6 +235,7 @@ class TestCase(unittest.TestCase):
             company, = self.company.search([
                     ('rec_name', '=', 'Dunder Mifflin'),
                     ])
+            party, = self.party.create([{'name': 'Party'}])
             currency = company.currency
             fiscalyear, = self.fiscalyear.search([])
             period = fiscalyear.periods[0]
@@ -282,6 +287,7 @@ class TestCase(unittest.TestCase):
                                                     }]),
                                         ],
                                     }, {
+                                    'party': party.id,
                                     'account': receivable.id,
                                     'debit': Decimal(30000),
                                     }]),
@@ -295,6 +301,7 @@ class TestCase(unittest.TestCase):
                                     'account': expense.id,
                                     'debit': Decimal(1100),
                                     }, {
+                                    'party': party.id,
                                     'account': payable.id,
                                     'credit': Decimal(1100),
                                     }]),
@@ -356,6 +363,7 @@ class TestCase(unittest.TestCase):
             company, = self.company.search([
                     ('rec_name', '=', 'Dunder Mifflin'),
                     ])
+            party, = self.party.create([{'name': 'Party'}])
             currency = company.currency
             root, = self.analytic_account.search([
                     ('type', '=', 'root')
@@ -398,6 +406,7 @@ class TestCase(unittest.TestCase):
                                                     }]),
                                         ],
                                     }, {
+                                    'party': party.id,
                                     'account': receivable.id,
                                     'debit': Decimal(30000),
                                     }]),
