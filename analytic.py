@@ -101,19 +101,19 @@ class AnalyticAccount:
         if name == 'balance':
             return join.select(table.id,
                 Sum(Coalesce(line.debit, 0) - Coalesce(line.credit, 0)),
-                line.currency,
+                line.internal_currency,
                 where=(table.type != 'view')
                 & table.id.in_(ids)
                 & table.active & line_query,
-                group_by=(table.id, line.currency))
+                group_by=(table.id, line.internal_currency))
         elif name in ('credit', 'debit'):
             return join.select(table.id,
                 Sum(Coalesce(Column(line, name), 0)),
-                line.currency,
+                line.internal_currency,
                 where=(table.type != 'view')
                 & table.id.in_(ids)
                 & table.active & line_query,
-                group_by=(table.id, line.currency))
+                group_by=(table.id, line.internal_currency))
         return None
 
     @classmethod
@@ -185,8 +185,8 @@ _DEPENDS = ['state']
 class AnalyticLine:
     __name__ = 'analytic_account.line'
 
-    currency = fields.Many2One('currency.currency', 'Currency', states=_STATES,
-        depends=_DEPENDS)
+    internal_currency = fields.Many2One('currency.currency',
+        'Currency (Internal)', readonly=True)
     state = fields.Selection([
             ('draft', 'Draft'),
             ('valid', 'Valid'),
@@ -197,15 +197,19 @@ class AnalyticLine:
         super(AnalyticLine, cls).__setup__()
         cls._check_modify_exclude = ['state']
         for fname in ('name', 'debit', 'credit', 'account', 'journal', 'date',
-                'reference', 'party', 'active'):
+                'reference', 'party', 'active', 'currency'):
             field = getattr(cls, fname)
             if field.states.get('readonly'):
                 field.states['readonly'] = Or(field.states['readonly'],
                     _STATES['readonly'])
             else:
                 field.states['readonly'] = _STATES['readonly']
-            if fname not in field.depends:
-                field.depends.append(fname)
+            if 'state' not in field.depends:
+                field.depends.append('state')
+        cls.currency.readonly = False
+        cls.currency.setter = 'set_currency'
+        cls.currency_digits.on_change_with = ['internal_currency']
+
         cls.move_line.required = False
         cls.move_line.states = {
             'required': Eval('state') != 'draft',
@@ -220,7 +224,6 @@ class AnalyticLine:
                     [()])
                 ]
             cls.account.depends.append('move_line')
-        cls.currency_digits.on_change_with = ['currency']
         if not cls.move_line.on_change:
             cls.move_line.on_change = []
         for name in ['move_line', 'journal', 'name', 'party', 'debit',
@@ -255,10 +258,11 @@ class AnalyticLine:
         company_sql_table = pool.get('company.company').__table__()
         move_line_sql_table = pool.get('account.move.line').__table__()
 
-        currency_exists = True
+        copy_currency = False
         if TableHandler.table_exist(cursor, cls._table):
+            # if table doesn't exists => new db
             table = TableHandler(cursor, cls, module_name)
-            currency_exists = table.column_exist('currency')
+            copy_currency = not table.column_exist('internal_currency')
 
         super(AnalyticLine, cls).__register__(module_name)
 
@@ -277,12 +281,12 @@ class AnalyticLine:
                 values=['posted'],
                 where=((sql_table.state == None) &
                     (sql_table.move_line == None))))
-        if not currency_exists and not is_sqlite:
+        if copy_currency and not is_sqlite:
             join = move_line_sql_table.join(account_sql_table)
             join.condition = move_line_sql_table.account == join.right.id
             join2 = join.join(company_sql_table)
             join2.condition = join.right.company == join2.right.id
-            query = sql_table.update(columns=[sql_table.currency],
+            query = sql_table.update(columns=[sql_table.internal_currency],
                     values=[join2.right.currency], from_=[join2],
                     where=sql_table.move_line == join.left.id)
             cursor.execute(*query)
@@ -293,6 +297,22 @@ class AnalyticLine:
         if Transaction().context.get('company'):
             company = Company(Transaction().context['company'])
             return company.currency.id
+
+    @fields.depends('internal_currency')
+    def on_change_with_currency(self, name=None):
+        if self.internal_currency:
+            return self.internal_currency.id
+
+    @classmethod
+    def set_currency(cls, lines, name, value):
+        cls.write(lines, {
+                'internal_currency': value,
+                })
+
+    def on_change_with_currency_digits(self, name=None):
+        if self.currency:
+            return self.currency.digits
+        return 2
 
     @staticmethod
     def default_state():
@@ -329,11 +349,6 @@ class AnalyticLine:
         if 'move' in context:
             move = Pool().get('account.move')(context.get('move'))
             return move.description
-
-    def on_change_with_currency_digits(self, name=None):
-        if self.currency:
-            return self.currency.digits
-        return 2
 
     def on_change_move_line(self):
         res = {
@@ -437,7 +452,7 @@ class AnalyticLine:
 
         cls.check_modify(lines)
 
-        move_lines = list(set([l.move_line for l in lines]))
+        move_lines = list(set([l.move_line for l in lines if l.move_line]))
         super(AnalyticLine, cls).delete(lines)
         MoveLine.validate_analytic_lines(move_lines)
 

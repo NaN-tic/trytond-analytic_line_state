@@ -233,6 +233,10 @@ msgctxt "field:analytic_account.line,company:"
 msgid "Company"
 msgstr "Empresa"
 
+msgctxt "field:analytic_account.line,internal_currency:"
+msgid "Currency (Internal)"
+msgstr "Moneda (interno)"
+
 msgctxt "field:analytic_account.line,state:"
 msgid "State"
 msgstr "Estado"
