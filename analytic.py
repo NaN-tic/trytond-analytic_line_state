@@ -87,34 +87,29 @@ class AnalyticAccount:
         return map(int, pending_accounts)
 
     @classmethod
-    def _query_get(cls, ids, name):
+    def query_get(cls, ids, names):
         pool = Pool()
         Line = pool.get('analytic_account.line')
         table = cls.__table__()
         line = Line.__table__()
 
-        join = table.join(line, 'LEFT',
-                condition=table.id == line.account
-                )
-
         line_query = Line.query_get(line)
-        if name == 'balance':
-            return join.select(table.id,
-                Sum(Coalesce(line.debit, 0) - Coalesce(line.credit, 0)),
-                line.internal_currency,
-                where=(table.type != 'view')
-                & table.id.in_(ids)
-                & table.active & line_query,
-                group_by=(table.id, line.internal_currency))
-        elif name in ('credit', 'debit'):
-            return join.select(table.id,
-                Sum(Coalesce(Column(line, name), 0)),
-                line.internal_currency,
-                where=(table.type != 'view')
-                & table.id.in_(ids)
-                & table.active & line_query,
-                group_by=(table.id, line.internal_currency))
-        return None
+
+        columns = [table.id, line.internal_currency]
+        for name in names:
+            if name == 'balance':
+                columns.append(
+                    Sum(Coalesce(line.debit, 0) - Coalesce(line.credit, 0)))
+            else:
+                columns.append(Sum(Coalesce(Column(line, name), 0)))
+        query = table.join(line, 'LEFT',
+            condition=table.id == line.account
+            ).select(*columns,
+            where=(table.type != 'view')
+            & table.id.in_(ids)
+            & table.active & line_query,
+            group_by=(table.id, line.internal_currency))
+        return query
 
     @classmethod
     def validate(cls, accounts):
