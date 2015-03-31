@@ -205,6 +205,11 @@ class AnalyticLine:
         cls.currency.setter = 'set_currency'
         cls.currency_digits.on_change_with = ['internal_currency']
 
+        cls.journal.required = False
+        cls.journal.states = {
+            'required': Eval('state') != 'draft',
+            'readonly': Eval('state') != 'draft',
+            }
         cls.move_line.required = False
         cls.move_line.states = {
             'required': Eval('state') != 'draft',
