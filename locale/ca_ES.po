@@ -77,6 +77,7 @@ msgstr ""
 
 msgctxt "error:analytic_account.line:"
 msgid ""
+<<<<<<<
 "Currency of analytic line \"%s\" is different from the one of the related "
 "move line."
 msgstr ""
@@ -85,6 +86,8 @@ msgstr ""
 
 msgctxt "error:analytic_account.line:"
 msgid ""
+=======
+>>>>>>>
 "The Analytic Line \"%(line)s\" is related to an Account Move Line of Account"
 " \"%(account)s\" which has the analytics forbidden for the Line's Analytic "
 "hierarchy."
@@ -233,9 +236,9 @@ msgctxt "field:analytic_account.line,company:"
 msgid "Company"
 msgstr "Empresa"
 
-msgctxt "field:analytic_account.line,internal_currency:"
-msgid "Currency (Internal)"
-msgstr "Moneda (intern)"
+msgctxt "field:analytic_account.line,internal_company:"
+msgid "Company"
+msgstr "Empresa"
 
 msgctxt "field:analytic_account.line,state:"
 msgid "State"

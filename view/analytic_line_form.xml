@@ -3,6 +3,8 @@
      copyright notices and license terms. -->
 <data>
     <xpath expr="/form/notebook/page/field[@name='currency']" position="after">
+        <label name="internal_company"/>
+        <field name="internal_company"/>
         <newline/>
         <label name="state"/>
         <field name="state"/>

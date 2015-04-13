@@ -5,9 +5,9 @@ from sql.aggregate import Sum
 from sql.conditionals import Coalesce
 
 from trytond import backend
-from trytond.model import Model, ModelSQL, ModelView, fields
+from trytond.model import ModelSQL, ModelView, fields
 from trytond.pool import Pool, PoolMeta
-from trytond.pyson import Eval, Or, PYSONEncoder, If, Bool
+from trytond.pyson import Eval, Or, PYSONEncoder
 from trytond.transaction import Transaction
 from trytond.wizard import Wizard
 
@@ -90,12 +90,14 @@ class AnalyticAccount:
     def query_get(cls, ids, names):
         pool = Pool()
         Line = pool.get('analytic_account.line')
+        Company = pool.get('company.company')
         table = cls.__table__()
         line = Line.__table__()
+        company = Company.__table__()
 
         line_query = Line.query_get(line)
 
-        columns = [table.id, line.internal_currency]
+        columns = [table.id, company.currency]
         for name in names:
             if name == 'balance':
                 columns.append(
@@ -104,11 +106,13 @@ class AnalyticAccount:
                 columns.append(Sum(Coalesce(Column(line, name), 0)))
         query = table.join(line, 'LEFT',
             condition=table.id == line.account
+            ).join(company, 'LEFT',
+            condition=company.id == line.internal_company
             ).select(*columns,
             where=(table.type != 'view')
             & table.id.in_(ids)
             & table.active & line_query,
-            group_by=(table.id, line.internal_currency))
+            group_by=(table.id, company.currency))
         return query
 
     @classmethod
@@ -180,8 +184,8 @@ _DEPENDS = ['state']
 class AnalyticLine:
     __name__ = 'analytic_account.line'
 
-    internal_currency = fields.Many2One('currency.currency',
-        'Currency (Internal)', readonly=True)
+    internal_company = fields.Many2One('company.company', 'Company',
+        required=True, states=_STATES, depends=_DEPENDS)
     state = fields.Selection([
             ('draft', 'Draft'),
             ('valid', 'Valid'),
@@ -192,7 +196,7 @@ class AnalyticLine:
         super(AnalyticLine, cls).__setup__()
         cls._check_modify_exclude = ['state']
         for fname in ('name', 'debit', 'credit', 'account', 'journal', 'date',
-                'reference', 'party', 'active', 'currency'):
+                'reference', 'party', 'active'):
             field = getattr(cls, fname)
             if field.states.get('readonly'):
                 field.states['readonly'] = Or(field.states['readonly'],
@@ -201,39 +205,33 @@ class AnalyticLine:
                 field.states['readonly'] = _STATES['readonly']
             if 'state' not in field.depends:
                 field.depends.append('state')
-        cls.currency.readonly = False
-        cls.currency.setter = 'set_currency'
-        cls.currency_digits.on_change_with = ['internal_currency']
+
+        company_domain = ('account.company', '=', Eval('internal_company'))
+        if not cls.move_line.domain:
+            cls.move_line.domain = [company_domain]
+        elif company_domain not in cls.move_line.domain:
+            cls.move_line.domain.append(company_domain)
 
         cls.journal.required = False
         cls.journal.states = {
             'required': Eval('state') != 'draft',
             'readonly': Eval('state') != 'draft',
             }
+
         cls.move_line.required = False
         cls.move_line.states = {
             'required': Eval('state') != 'draft',
             'readonly': Eval('state') != 'draft',
             }
-        if not 'move_line' in cls.account.depends:
-            old_domain = cls.account.domain
-            company_domain = old_domain.pop()
-            cls.account.domain = [old_domain,
-                If(Bool(Eval('move_line', 0)),
-                    [company_domain],
-                    [()])
-                ]
-            cls.account.depends.append('move_line')
         if not cls.move_line.on_change:
             cls.move_line.on_change = []
         for name in ['move_line', 'journal', 'name', 'party', 'debit',
                 'credit']:
-            if not name in cls.move_line.on_change:
+            if name not in cls.move_line.on_change:
                 cls.move_line.on_change.append(name)
+        cls.move_line.depends += ['internal_company', 'state']
 
         cls._error_messages.update({
-                'different_currency_move': ('Currency of analytic line "%s" '
-                    'is different from the one of the related move line.'),
                 'move_line_account_analytic_forbidden': (
                     'The Analytic Line "%(line)s" is related to an Account '
                     'Move Line of Account "%(account)s" which has the '
@@ -255,14 +253,13 @@ class AnalyticLine:
         cursor = Transaction().cursor
         sql_table = cls.__table__()
         account_sql_table = pool.get('account.account').__table__()
-        company_sql_table = pool.get('company.company').__table__()
         move_line_sql_table = pool.get('account.move.line').__table__()
 
-        copy_currency = False
+        copy_company = False
         if TableHandler.table_exist(cursor, cls._table):
             # if table doesn't exists => new db
             table = TableHandler(cursor, cls, module_name)
-            copy_currency = not table.column_exist('internal_currency')
+            copy_company = not table.column_exist('internal_company')
 
         super(AnalyticLine, cls).__register__(module_name)
 
@@ -270,7 +267,7 @@ class AnalyticLine:
 
         is_sqlite = 'backend.sqlite.table.TableHandler' in str(TableHandler)
         # Migration from DB without this module
-        #table.not_null_action('move_line', action='remove') don't execute the
+        # table.not_null_action('move_line', action='remove') don't execute the
         # action if the field is not defined in this module
         if not is_sqlite:
             cursor.execute('ALTER TABLE %s ALTER COLUMN "move_line" '
@@ -281,38 +278,33 @@ class AnalyticLine:
                 values=['posted'],
                 where=((sql_table.state == None) &
                     (sql_table.move_line == None))))
-        if copy_currency and not is_sqlite:
+        if copy_company and not is_sqlite:
             join = move_line_sql_table.join(account_sql_table)
             join.condition = move_line_sql_table.account == join.right.id
-            join2 = join.join(company_sql_table)
-            join2.condition = join.right.company == join2.right.id
-            query = sql_table.update(columns=[sql_table.internal_currency],
-                    values=[join2.right.currency], from_=[join2],
+            query = sql_table.update(columns=[sql_table.internal_company],
+                    values=[join.right.company], from_=[join],
                     where=sql_table.move_line == join.left.id)
             cursor.execute(*query)
 
     @staticmethod
-    def default_currency():
-        Company = Pool().get('company.company')
-        if Transaction().context.get('company'):
-            company = Company(Transaction().context['company'])
-            return company.currency.id
+    def default_internal_company():
+        return Transaction().context.get('company')
 
-    @fields.depends('internal_currency')
+    @fields.depends('internal_company')
     def on_change_with_currency(self, name=None):
-        if self.internal_currency:
-            return self.internal_currency.id
+        if self.internal_company:
+            return self.internal_company.currency.id
 
-    @classmethod
-    def set_currency(cls, lines, name, value):
-        cls.write(lines, {
-                'internal_currency': value,
-                })
-
+    @fields.depends('internal_company')
     def on_change_with_currency_digits(self, name=None):
-        if self.currency:
-            return self.currency.digits
+        if self.internal_company:
+            return self.internal_company.currency.digits
         return 2
+
+    @fields.depends('internal_company')
+    def on_change_with_company(self, name=None):
+        if self.internal_company:
+            return self.internal_company.id
 
     @staticmethod
     def default_state():
@@ -343,7 +335,7 @@ class AnalyticLine:
     def default_name():
         context = Transaction().context
         for name in ('description', 'move_description'):
-            value = context.get('description')
+            value = context.get(name)
             if value:
                 return value
         if 'move' in context:
@@ -387,14 +379,7 @@ class AnalyticLine:
     def validate(cls, lines):
         super(AnalyticLine, cls).validate(lines)
         for line in lines:
-            line.check_currency()
             line.check_account_forbidden_analytic()
-
-    def check_currency(self):
-        if self.move_line:
-            move_currency = self.move_line.account.currency
-            if move_currency != self.currency:
-                self.raise_user_error('different_currency_move', self.rec_name)
 
     def check_account_forbidden_analytic(self):
         if (self.move_line and
