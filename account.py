@@ -269,7 +269,7 @@ class MoveLine:
     def delete(cls, lines):
         AnalyticLine = Pool().get('analytic_account.line')
         todraft_lines = [al for line in lines for al in line.analytic_lines]
-        super(MoveLine, cls).delete(lines)
         AnalyticLine.write(todraft_lines, {
                 'state': 'draft',
                 })
+        super(MoveLine, cls).delete(lines)
