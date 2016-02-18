@@ -442,23 +442,32 @@ class AnalyticLine:
         return lines
 
     @classmethod
-    def write(cls, lines, vals):
+    def write(cls, *args):
         MoveLine = Pool().get('account.move.line')
 
-        if any(k not in cls._check_modify_exclude for k in vals):
-            cls.check_modify(lines)
+        actions = iter(args)
+        lines_to_check, all_lines = [], []
+        for lines, vals in zip(actions, actions):
+            if any(k not in cls._check_modify_exclude for k in vals):
+                lines_to_check.extend(lines)
+            all_lines.extend(lines)
+        cls.check_modify(lines_to_check)
 
-        move_lines = [l.move_line for l in lines if l.move_line]
-        super(AnalyticLine, cls).write(lines, vals)
-        move_lines += [l.move_line for l in lines if l.move_line]
+        move_lines = set([l.move_line for l in all_lines if l.move_line])
+        super(AnalyticLine, cls).write(*args)
+        move_lines |= set([l.move_line for l in all_lines if l.move_line])
 
-        if any(k not in cls._check_modify_exclude for k in vals):
-            cls.check_modify(lines)
-
-            MoveLine.validate_analytic_lines(list(set(move_lines)))
-            todraft_lines = [l for l in lines
-                if (not l.move_line and l.state != 'draft')]
-            cls.write(todraft_lines, {
+        lines_to_check = []
+        for lines, vals in zip(actions, actions):
+            if any(k not in cls._check_modify_exclude for k in vals):
+                lines_to_check.extend(lines)
+        cls.check_modify(lines_to_check)
+        MoveLine.validate_analytic_lines(list(move_lines))
+        todraft_lines = [l for l in all_lines
+            if (not l.move_line and l.state != 'draft')]
+        # Call super to avoid_recursion error:
+        if todraft_lines:
+            super(AnalyticLine, cls).write(todraft_lines, {
                     'state': 'draft',
                     })
 

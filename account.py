@@ -1,7 +1,5 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
-import logging
-import time
 from itertools import chain
 
 from trytond.model import ModelView, fields
@@ -223,7 +221,6 @@ class MoveLine:
         pool = Pool()
         AnalyticLine = pool.get('analytic_account.line')
 
-        start_time = time.time()
         todraft, tovalid = [], []
         for line in lines:
             analytic_lines_by_root = {}
@@ -248,10 +245,6 @@ class MoveLine:
             AnalyticLine.write(tovalid, {
                     'state': 'valid',
                     })
-        logging.getLogger(cls.__name__).debug(
-            "validate_analytic_lines(): %s seconds"
-            % (time.time() - start_time))
-        return todraft + tovalid
 
     @classmethod
     def create(cls, vlist):
