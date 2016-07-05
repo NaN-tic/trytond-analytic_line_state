@@ -163,7 +163,7 @@ class AnalyticAccountAccountRequired(ModelSQL):
         new_table = 'analytic_acc_acc_required_acc_acc'
         if TableHandler.table_exist(old_table):
             TableHandler.table_rename(old_table, new_table)
-        super(ProductionConfigurationOperationType, cls).__register__(
+        super(AnalyticAccountAccountRequired, cls).__register__(
             module_name)
 
 
@@ -185,7 +185,7 @@ class AnalyticAccountAccountForbidden(ModelSQL):
         new_table = 'analytic_acc_acc_forbidden_acc_acc'
         if TableHandler.table_exist(old_table):
             TableHandler.table_rename(old_table, new_table)
-        super(ProductionConfigurationOperationType, cls).__register__(
+        super(AnalyticAccountAccountForbidden, cls).__register__(
             module_name)
 
 
@@ -207,7 +207,7 @@ class AnalyticAccountAccountOptional(ModelSQL):
         new_table = 'analytic_acc_acc_optional_acc_acc'
         if TableHandler.table_exist(old_table):
             TableHandler.table_rename(old_table, new_table)
-        super(ProductionConfigurationOperationType, cls).__register__(
+        super(AnalyticAccountAccountOptional, cls).__register__(
             module_name)
 
 
