@@ -250,20 +250,20 @@ class AnalyticLine:
     def __register__(cls, module_name):
         pool = Pool()
         TableHandler = backend.get('TableHandler')
-        cursor = Transaction().cursor
+        cursor = Transaction().connection.cursor()
         sql_table = cls.__table__()
         account_sql_table = pool.get('account.account').__table__()
         move_line_sql_table = pool.get('account.move.line').__table__()
 
         copy_company = False
-        if TableHandler.table_exist(cursor, cls._table):
+        if TableHandler.table_exist(cls._table):
             # if table doesn't exists => new db
-            table = TableHandler(cursor, cls, module_name)
+            table = TableHandler(cls, module_name)
             copy_company = not table.column_exist('internal_company')
 
         super(AnalyticLine, cls).__register__(module_name)
 
-        table = TableHandler(cursor, cls, module_name)
+        table = TableHandler(cls, module_name)
 
         is_sqlite = 'backend.sqlite.table.TableHandler' in str(TableHandler)
         # Migration from DB without this module
