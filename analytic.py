@@ -343,26 +343,21 @@ class AnalyticLine:
             return move.description
 
     def on_change_move_line(self):
-        res = {
-            'journal': None,
-            'name': None,
-            'party': None,
-            }
-        if not self.move_line:
-            return res
-
-        res['date'] = self.move_line.move.date
-        if not self.debit:
-            res['debit'] = self.move_line.debit
-        if not self.credit:
-            res['credit'] = self.move_line.credit
-        if not self.journal:
-            res['journal'] = self.move_line.move.journal.id
-        if not self.party and self.move_line.party:
-            res['party'] = self.move_line.party.id
-        if not self.name:
-            res['name'] = self.move_line.description
-        return res
+        self.journal = None,
+        self.name = None,
+        self.party = None,
+        if self.move_line:
+            self.date = self.move_line.move.date
+            if not self.debit:
+                self.debit = self.move_line.debit
+            if not self.credit:
+                self.credit = self.move_line.credit
+            if not self.journal:
+                self.journal = self.move_line.move.journal.id
+            if not self.party and self.move_line.party:
+                self.party = self.move_line.party.id
+            if not self.name:
+                self.name = self.move_line.description
 
     @classmethod
     def query_get(cls, table):
