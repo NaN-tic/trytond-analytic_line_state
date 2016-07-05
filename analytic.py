@@ -148,31 +148,67 @@ class AnalyticAccount:
 class AnalyticAccountAccountRequired(ModelSQL):
     'Analytic Account - Account - Required'
     __name__ = 'analytic_account.account-required-account.account'
+    _table = 'analytic_acc_acc_required_acc_acc'
     analytic_account = fields.Many2One('analytic_account.account',
         'Analytic Account', ondelete='CASCADE', required=True, select=True,
         domain=[('type', '=', 'root')])
     account = fields.Many2One('account.account', 'Account',
         ondelete='CASCADE', required=True, select=True)
+
+    @classmethod
+    def __register__(cls, module_name):
+        TableHandler = backend.get('TableHandler')
+        # Migration from 3.4: rename table
+        old_table = 'analytic_account_account-required-account_account'
+        new_table = 'analytic_acc_acc_required_acc_acc'
+        if TableHandler.table_exist(old_table):
+            TableHandler.table_rename(old_table, new_table)
+        super(ProductionConfigurationOperationType, cls).__register__(
+            module_name)
 
 
 class AnalyticAccountAccountForbidden(ModelSQL):
     'Analytic Account - Account - Forbidden'
     __name__ = 'analytic_account.account-forbidden-account.account'
+    _table = 'analytic_acc_acc_forbidden_acc_acc'
     analytic_account = fields.Many2One('analytic_account.account',
         'Analytic Account', ondelete='CASCADE', required=True, select=True,
         domain=[('type', '=', 'root')])
     account = fields.Many2One('account.account', 'Account',
         ondelete='CASCADE', required=True, select=True)
+
+    @classmethod
+    def __register__(cls, module_name):
+        TableHandler = backend.get('TableHandler')
+        # Migration from 3.4: rename table
+        old_table = 'analytic_account_account-forbidden-account_account'
+        new_table = 'analytic_acc_acc_forbidden_acc_acc'
+        if TableHandler.table_exist(old_table):
+            TableHandler.table_rename(old_table, new_table)
+        super(ProductionConfigurationOperationType, cls).__register__(
+            module_name)
 
 
 class AnalyticAccountAccountOptional(ModelSQL):
     'Analytic Account - Account - Optional'
     __name__ = 'analytic_account.account-optional-account.account'
+    _table = 'analytic_acc_acc_optional_acc_acc'
     analytic_account = fields.Many2One('analytic_account.account',
         'Analytic Account', ondelete='CASCADE', required=True, select=True,
         domain=[('type', '=', 'root')])
     account = fields.Many2One('account.account', 'Account',
         ondelete='CASCADE', required=True, select=True)
+
+    @classmethod
+    def __register__(cls, module_name):
+        TableHandler = backend.get('TableHandler')
+        # Migration from 3.4: rename table
+        old_table = 'analytic_account_account-optional-account_account'
+        new_table = 'analytic_acc_acc_optional_acc_acc'
+        if TableHandler.table_exist(old_table):
+            TableHandler.table_rename(old_table, new_table)
+        super(ProductionConfigurationOperationType, cls).__register__(
+            module_name)
 
 
 _STATES = {
