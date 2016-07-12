@@ -1,67 +1,46 @@
-#!/usr/bin/env python
-# The COPYRIGHT file at the top level of this repository contains the full
-# copyright notices and license terms.
-import datetime
+# This file is part of Tryton.  The COPYRIGHT file at the top level of
+# this repository contains the full copyright notices and license terms.
 import unittest
+import datetime
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
+
 import trytond.tests.test_tryton
 from trytond.exceptions import UserError
-from trytond.tests.test_tryton import (POOL, DB_NAME, USER, CONTEXT,
-    test_view, test_depends)
+from trytond.tests.test_tryton import ModuleTestCase, with_transaction
 from trytond.transaction import Transaction
+from trytond.pool import Pool
+
+from trytond.modules.company.tests import create_company, set_company
+from trytond.modules.account.tests import create_chart, get_fiscalyear
 
 
-class TestCase(unittest.TestCase):
+class TestCase(ModuleTestCase):
     '''
     Test module.
     '''
+    module = 'analytic_line_state'
 
-    def setUp(self):
-        trytond.tests.test_tryton.install_module('analytic_line_state')
-        self.account = POOL.get('account.account')
-        self.analytic_account = POOL.get('analytic_account.account')
-        self.analytic_line = POOL.get('analytic_account.line')
-        self.company = POOL.get('company.company')
-        self.configuration = POOL.get('account.configuration')
-        self.fiscalyear = POOL.get('account.fiscalyear')
-        self.journal = POOL.get('account.journal')
-        self.move = POOL.get('account.move')
-        self.party = POOL.get('party.party')
-        self.sequence = POOL.get('ir.sequence')
-
-    def test0005views(self):
-        '''
-        Test views.
-        '''
-        test_view('analytic_line_state')
-
-    def test0006depends(self):
-        '''
-        Test depends.
-        '''
-        test_depends()
-
+    @with_transaction()
     def test0010analytic_account_chart(self):
         'Test creation of minimal analytic chart of accounts'
-        with Transaction().start(DB_NAME, USER,
-                context=CONTEXT) as transaction:
-            company, = self.company.search([
-                    ('rec_name', '=', 'Dunder Mifflin'),
-                    ])
-            currency = company.currency
+        pool = Pool()
+        AnalyticAccount = pool.get('analytic_account.account')
+        Party = pool.get('party.party')
+        transaction = Transaction()
 
-            root, = self.analytic_account.create([{
+        # Create Company
+        party = Party(name='Party')
+        party.save()
+        company = create_company()
+        with set_company(company):
+            root, = AnalyticAccount.create([{
                         'name': 'Root',
-                        'company': company.id,
-                        'currency': currency.id,
                         'type': 'root',
                         },
                     ])
-            self.analytic_account.create([{
+            AnalyticAccount.create([{
                         'name': 'Projects',
-                        'company': company.id,
-                        'currency': currency.id,
                         'root': root.id,
                         'parent': root.id,
                         'type': 'view',
@@ -69,15 +48,11 @@ class TestCase(unittest.TestCase):
                             ('create', [{
                                         'name': 'Project 1',
                                         'code': 'P1',
-                                        'company': company.id,
-                                        'currency': currency.id,
                                         'root': root.id,
                                         'type': 'normal',
                                         }, {
                                         'name': 'Project 2',
                                         'code': 'P2',
-                                        'company': company.id,
-                                        'currency': currency.id,
                                         'root': root.id,
                                         'type': 'normal',
                                         },
@@ -86,22 +61,25 @@ class TestCase(unittest.TestCase):
                         },
                     ])
 
-            transaction.cursor.commit()
+            transaction.commit()
 
     def configure_analytic_accounts(self):
-        revenue_expense = self.account.search([
+        pool = Pool()
+        Account = pool.get('account.account')
+        AnalyticAccount = pool.get('analytic_account.account')
+        revenue_expense = Account.search([
                 ('kind', 'in', ('revenue', 'expense')),
                 ])
-        receivable_payable = self.account.search([
+        receivable_payable = Account.search([
                 ('kind', 'in', ('receivable', 'payable')),
                 ])
-        other = self.account.search([
+        other = Account.search([
                 ('kind', '=', 'other'),
                 ])
-        roots = self.analytic_account.search([
+        roots = AnalyticAccount.search([
                 ('type', '=', 'root')
                 ])
-        self.analytic_account.write(roots, {
+        AnalyticAccount.write(roots, {
                     'analytic_required': [
                         ('add', map(int, revenue_expense)),
                         ],
@@ -116,63 +94,82 @@ class TestCase(unittest.TestCase):
         for root in roots:
             self.assertEqual(len(root.analytic_pending_accounts), 0)
 
+    @with_transaction()
     def test0020account_constraints(self):
         'Test account configuration constraints'
-        with Transaction().start(DB_NAME, USER, context=CONTEXT):
-            self.configure_analytic_accounts()
-            company, = self.company.search([
-                    ('rec_name', '=', 'Dunder Mifflin'),
-                    ])
-            party, = self.party.create([{'name': 'Party'}])
-            currency = company.currency
-            fiscalyear, = self.fiscalyear.search([])
+        pool = Pool()
+        Account = pool.get('account.account')
+        AnalyticAccount = pool.get('analytic_account.account')
+        Journal = pool.get('account.journal')
+        Move = pool.get('account.move')
+        Party = pool.get('party.party')
+        Company = pool.get('company.company')
+
+        party, = Party.search([('name', '=', 'Party')])
+        company, = Company.search([])
+        with set_company(company):
+            root, = AnalyticAccount.create([{
+                        'type': 'root',
+                        'name': 'Root',
+                        }])
+            analytic_account, = AnalyticAccount.create([{
+                        'type': 'normal',
+                        'name': 'Analytic Account',
+                        'parent': root.id,
+                        'root': root.id,
+                        }])
+
+            # Create Chart and Fiscalyear
+            create_chart(company)
+            fiscalyear = get_fiscalyear(company)
+            fiscalyear.save()
+            fiscalyear.create_period([fiscalyear])
             period = fiscalyear.periods[0]
-            journal_revenue, = self.journal.search([
+            journal_revenue, = Journal.search([
                     ('code', '=', 'REV'),
                     ])
-            journal_expense, = self.journal.search([
+            journal_expense, = Journal.search([
                     ('code', '=', 'EXP'),
                     ])
-            revenue, = self.account.search([
+            revenue, = Account.search([
                     ('kind', '=', 'revenue'),
                     ])
-            receivable, = self.account.search([
+            receivable, = Account.search([
                     ('kind', '=', 'receivable'),
                     ])
-            expense, = self.account.search([
+            expense, = Account.search([
                     ('kind', '=', 'expense'),
                     ])
-            payable, = self.account.search([
+            payable, = Account.search([
                     ('kind', '=', 'payable'),
                     ])
-            project1, = self.analytic_account.search([
+            project1, = AnalyticAccount.search([
                     ('code', '=', 'P1'),
                     ])
-            project2, = self.analytic_account.search([
+            project2, = AnalyticAccount.search([
                     ('code', '=', 'P2'),
                     ])
-            #root = project1.root
+            # root = project1.root
 
-            # Can add account in required and forbidden
-            #with self.assertRaises(UserError):
+            # # Can add account in required and forbidden
+            # with self.assertRaises(UserError):
             #   root.analytic_required = root.analytic_required + (receivable,)
             #    root.save()
-            ## Can add account in required and optional
-            #with self.assertRaises(UserError):
+            # # Can add account in required and optional
+            # with self.assertRaises(UserError):
             #    root.analytic_optional = root.analytic_optional + (expense,)
             #    root.save()
-            ## Can add account in forbidden and optional
-            #with self.assertRaises(UserError):
+            # # Can add account in forbidden and optional
+            # with self.assertRaises(UserError):
             #   root.analytic_optional = root.analytic_optional + (receivable,)
             #    root.save()
 
-            # Can create move with analytic in analytic required account and
+            # # Can create move with analytic in analytic required account and
             # without analytic in forbidden account
             analytic_lines_value = [('create', [{
                             'name': 'Contribution',
                             'debit': Decimal(0),
                             'credit': Decimal(30000),
-                            'currency': currency.id,
                             'account': project1.id,
                             'date': period.start_date,
                             'journal': journal_revenue.id,
@@ -194,7 +191,7 @@ class TestCase(unittest.TestCase):
                                 }]),
                     ],
                 }
-            valid_move, = self.move.create([valid_move_vals])
+            valid_move, = Move.create([valid_move_vals])
             self.assertTrue(all(al.state == 'valid'
                     for ml in valid_move.lines for al in ml.analytic_lines))
 
@@ -211,9 +208,9 @@ class TestCase(unittest.TestCase):
                             'debit': Decimal(30000),
                             }]),
                 ]
-            missing_analytic_move = self.move.create([missing_analytic_vals])
+            missing_analytic_move = Move.create([missing_analytic_vals])
             with self.assertRaises(UserError):
-                self.move.post(missing_analytic_move)
+                Move.post(missing_analytic_move)
 
             # Can not create move with analytic in analytic forbidden account
             unexpected_analytic_vals = valid_move_vals.copy()
@@ -226,41 +223,52 @@ class TestCase(unittest.TestCase):
                         }]),
                 ]
             with self.assertRaises(UserError):
-                self.move.create([unexpected_analytic_vals])
+                Move.create([unexpected_analytic_vals])
 
+    @with_transaction()
     def test0030analytic_line_state(self):
         'Test of analytic line workflow'
-        with Transaction().start(DB_NAME, USER, context=CONTEXT):
-            self.configure_analytic_accounts()
-            company, = self.company.search([
-                    ('rec_name', '=', 'Dunder Mifflin'),
-                    ])
-            party, = self.party.create([{'name': 'Party'}])
-            currency = company.currency
-            fiscalyear, = self.fiscalyear.search([])
+        pool = Pool()
+        Account = pool.get('account.account')
+        AnalyticAccount = pool.get('analytic_account.account')
+        AnalyticLine = pool.get('analytic_account.line')
+        Journal = pool.get('account.journal')
+        Move = pool.get('account.move')
+        Party = pool.get('party.party')
+        Company = pool.get('company.company')
+
+        party, = Party.search([('name', '=', 'Party')])
+        company, = Company.search([])
+        with set_company(company):
+
+            # Create Chart and Fiscalyear
+            create_chart(company)
+            fiscalyear = get_fiscalyear(company)
+            fiscalyear.save()
+            fiscalyear.create_period([fiscalyear])
             period = fiscalyear.periods[0]
-            journal_revenue, = self.journal.search([
+            journal_revenue, = Journal.search([
                     ('code', '=', 'REV'),
                     ])
-            journal_expense, = self.journal.search([
+            journal_expense, = Journal.search([
                     ('code', '=', 'EXP'),
                     ])
-            revenue, = self.account.search([
+            revenue, = Account.search([
                     ('kind', '=', 'revenue'),
                     ])
-            receivable, = self.account.search([
+            receivable, = Account.search([
                     ('kind', '=', 'receivable'),
                     ])
-            expense, = self.account.search([
+            expense, = Account.search([
                     ('kind', '=', 'expense'),
                     ])
-            payable, = self.account.search([
+            payable, = Account.search([
                     ('kind', '=', 'payable'),
                     ])
-            project1, = self.analytic_account.search([
+            project1, = AnalyticAccount.search([
                     ('code', '=', 'P1'),
                     ])
-            project2, = self.analytic_account.search([
+            project2, = AnalyticAccount.search([
                     ('code', '=', 'P2'),
                     ])
             today = datetime.date.today()
@@ -279,7 +287,6 @@ class TestCase(unittest.TestCase):
                                                     'name': 'Contribution',
                                                     'debit': Decimal(0),
                                                     'credit': Decimal(30000),
-                                                    'currency': currency.id,
                                                     'date': today,
                                                     'account': project1.id,
                                                     'journal':
@@ -308,24 +315,23 @@ class TestCase(unittest.TestCase):
                         ],
                     },
                 ]
-            valid_move, draft_move = self.move.create(vlist)
+            valid_move, draft_move = Move.create(vlist)
 
             # Check the Analytic lines of the valid move are in 'valid' state
             self.assertTrue(all(al.state == 'valid'
                     for ml in valid_move.lines for al in ml.analytic_lines))
             # Can post the move
-            self.move.post([valid_move])
+            Move.post([valid_move])
             self.assertEqual(valid_move.state, 'posted')
 
             # Create some analytic lines on draft move and check how their
             # state change
             expense_move_line = [l for l in draft_move.lines
                 if l.account.kind == 'expense'][0]
-            line1, = self.analytic_line.create([{
+            line1, = AnalyticLine.create([{
                         'name': 'Materials purchase',
                         'credit': Decimal(0),
                         'debit': Decimal(600),
-                        'currency': currency.id,
                         'account': project1.id,
                         'move_line': expense_move_line.id,
                         'journal': journal_expense.id,
@@ -333,15 +339,14 @@ class TestCase(unittest.TestCase):
                         }])
             self.assertEqual(line1.state, 'draft')
 
-            ## Can't post move because analytic is not valid
-            #with self.assertRaises(UserError):
-            #    self.move.post([draft_move])
+            # # Can't post move because analytic is not valid
+            # with self.assertRaises(UserError):
+            #    Move.post([draft_move])
 
-            line2, = self.analytic_line.create([{
+            line2, = AnalyticLine.create([{
                         'name': 'Salaries',
                         'credit': Decimal(0),
                         'debit': Decimal(500),
-                        'currency': currency.id,
                         'account': project1.id,
                         'journal': journal_expense.id,
                         'date': today - relativedelta(days=10),
@@ -354,34 +359,45 @@ class TestCase(unittest.TestCase):
             self.assertEqual(line1.state, 'valid')
 
             # Can post the move
-            self.move.post([draft_move])
+            Move.post([draft_move])
             self.assertEqual(draft_move.state, 'posted')
 
+    @with_transaction()
     def test0030account_configuration(self):
         'Test account configuration configuration'
-        with Transaction().start(DB_NAME, USER, context=CONTEXT):
-            company, = self.company.search([
-                    ('rec_name', '=', 'Dunder Mifflin'),
-                    ])
-            party, = self.party.create([{'name': 'Party'}])
-            currency = company.currency
-            root, = self.analytic_account.search([
+        pool = Pool()
+        Account = pool.get('account.account')
+        AnalyticAccount = pool.get('analytic_account.account')
+        Configuration = pool.get('account.configuration')
+        Journal = pool.get('account.journal')
+        Move = pool.get('account.move')
+        Party = pool.get('party.party')
+        Company = pool.get('company.company')
+
+        party, = Party.search([('name', '=', 'Party')])
+        company, = Company.search([])
+        with set_company(company):
+            root, = AnalyticAccount.search([
                     ('type', '=', 'root')
                     ])
             self.assertGreater(len(root.analytic_pending_accounts), 0)
 
-            fiscalyear, = self.fiscalyear.search([])
+            # Create Chart and Fiscalyear
+            create_chart(company)
+            fiscalyear = get_fiscalyear(company)
+            fiscalyear.save()
+            fiscalyear.create_period([fiscalyear])
             period = fiscalyear.periods[0]
-            journal_revenue, = self.journal.search([
+            journal_revenue, = Journal.search([
                     ('code', '=', 'REV'),
                     ])
-            other, = self.account.search([
+            other, = Account.search([
                     ('kind', '=', 'other'),
                     ], limit=1)
-            receivable, = self.account.search([
+            receivable, = Account.search([
                     ('kind', '=', 'receivable'),
                     ])
-            project1, = self.analytic_account.search([
+            project1, = AnalyticAccount.search([
                     ('code', '=', 'P1'),
                     ])
 
@@ -398,7 +414,6 @@ class TestCase(unittest.TestCase):
                                                     'name': 'Contribution',
                                                     'debit': Decimal(0),
                                                     'credit': Decimal(30000),
-                                                    'currency': currency.id,
                                                     'account': project1.id,
                                                     'date': period.start_date,
                                                     'journal':
@@ -412,35 +427,19 @@ class TestCase(unittest.TestCase):
                                     }]),
                         ],
                     }]
-            #Doesnt raise any error
-            move = self.move.create(values)
-            self.move.post(move)
+            # Doesnt raise any error
+            move = Move.create(values)
+            Move.post(move)
 
-            self.configuration.write([], {
+            Configuration.write([], {
                     'validate_analytic': True,
                     })
             with self.assertRaises(UserError):
-                move = self.move.create(values)
-                self.move.post(move)
+                move = Move.create(values)
+                Move.post(move)
 
 
 def suite():
     suite = trytond.tests.test_tryton.suite()
-    from trytond.modules.company.tests import test_company
-    from trytond.modules.account.tests import test_account
-    exclude_tests = ('test0005views', 'test0006depends',
-        'test0020company_recursion', 'test0040user',
-        'test0020mon_grouping', 'test0040rate_unicity',
-        'test0060compute_nonfinite', 'test0070compute_nonfinite_worounding',
-        'test0080compute_same', 'test0090compute_zeroamount',
-        'test0100compute_zerorate', 'test0110compute_missingrate',
-        'test0120compute_bothmissingrate', 'test0130delete_cascade',
-        'scenario_account_reconciliation_rst')
-    for test in test_company.suite():
-        if test not in suite and test.id().split('.')[-1] not in exclude_tests:
-            suite.addTest(test)
-    for test in test_account.suite():
-        if test not in suite and test.id().split('.')[-1] not in exclude_tests:
-            suite.addTest(test)
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestCase))
     return suite
