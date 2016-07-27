@@ -24,29 +24,35 @@ class AnalyticAccount:
         'analytic_account.account-required-account.account',
         'analytic_account', 'account', 'Analytic Required', domain=[
             ('kind', '!=', 'view'),
+            ('company', '=', Eval('company')),
             ('id', 'not in', Eval('analytic_forbidden')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
             'invisible': Eval('type') != 'root',
-            }, depends=['analytic_forbidden', 'analytic_optional', 'type'])
+            },
+        depends=['company', 'analytic_forbidden', 'analytic_optional', 'type'])
     analytic_forbidden = fields.Many2Many(
         'analytic_account.account-forbidden-account.account',
         'analytic_account', 'account', 'Analytic Forbidden', domain=[
             ('kind', '!=', 'view'),
+            ('company', '=', Eval('company')),
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
             'invisible': Eval('type') != 'root',
-            }, depends=['analytic_required', 'analytic_optional', 'type'])
+            },
+        depends=['company', 'analytic_required', 'analytic_optional', 'type'])
     analytic_optional = fields.Many2Many(
         'analytic_account.account-optional-account.account',
         'analytic_account', 'account', 'Analytic Optional', domain=[
             ('kind', '!=', 'view'),
+            ('company', '=', Eval('company')),
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_forbidden')),
             ], states={
             'invisible': Eval('type') != 'root',
-            }, depends=['analytic_required', 'analytic_forbidden', 'type'])
+            },
+        depends=['company', 'analytic_required', 'analytic_forbidden', 'type'])
     analytic_pending_accounts = fields.Function(fields.Many2Many(
             'account.account', None, None, 'Pending Accounts', states={
                 'invisible': Eval('type') != 'root',
@@ -82,6 +88,7 @@ class AnalyticAccount:
         current_accounts += map(int, self.analytic_optional)
         pending_accounts = Account.search([
                 ('kind', '!=', 'view'),
+                ('company', '=', self.company),
                 ('id', 'not in', current_accounts),
                 ])
         return map(int, pending_accounts)
@@ -341,6 +348,10 @@ class AnalyticLine:
     def on_change_with_company(self, name=None):
         if self.internal_company:
             return self.internal_company.id
+
+    @classmethod
+    def search_company(cls, name, clause):
+        return [('internal_company',) + tuple(clause[1:])]
 
     @staticmethod
     def default_state():

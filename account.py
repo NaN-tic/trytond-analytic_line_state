@@ -24,29 +24,35 @@ class Account:
         'analytic_account.account-required-account.account', 'account',
         'analytic_account', 'Analytic Required', domain=[
             ('type', '=', 'root'),
+            ('company', '=', Eval('company')),
             ('id', 'not in', Eval('analytic_forbidden')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
             'invisible': Eval('kind') == 'view',
-            }, depends=['analytic_forbidden', 'analytic_optional', 'kind'])
+            },
+        depends=['company', 'analytic_forbidden', 'analytic_optional', 'kind'])
     analytic_forbidden = fields.Many2Many(
         'analytic_account.account-forbidden-account.account', 'account',
         'analytic_account', 'Analytic Forbidden', domain=[
             ('type', '=', 'root'),
+            ('company', '=', Eval('company')),
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
             'invisible': Eval('kind') == 'view',
-            }, depends=['analytic_required', 'analytic_optional', 'kind'])
+            },
+        depends=['company', 'analytic_required', 'analytic_optional', 'kind'])
     analytic_optional = fields.Many2Many(
         'analytic_account.account-optional-account.account', 'account',
         'analytic_account', 'Analytic Optional', domain=[
             ('type', '=', 'root'),
+            ('company', '=', Eval('company')),
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_forbidden')),
             ], states={
             'invisible': Eval('kind') == 'view',
-            }, depends=['analytic_required', 'analytic_forbidden', 'kind'])
+            },
+        depends=['company', 'analytic_required', 'analytic_forbidden', 'kind'])
     analytic_pending_accounts = fields.Function(
         fields.Many2Many('analytic_account.account', None, None,
             'Pending Accounts', states={
@@ -82,6 +88,7 @@ class Account:
         current_accounts += map(int, self.analytic_optional)
         pending_accounts = AnalyticAccount.search([
                 ('type', '=', 'root'),
+                ('company', '=', self.company),
                 ('id', 'not in', current_accounts),
                 ])
         return map(int, pending_accounts)
@@ -186,9 +193,9 @@ class MoveLine:
             cls.analytic_lines.context = {}
         for name in ('debit', 'credit', 'journal', 'move', 'party',
                 'description', 'move_description'):
-            if not name in cls.analytic_lines.context:
+            if name not in cls.analytic_lines.context:
                 cls.analytic_lines.context[name] = Eval(name)
-        if not 'date' in cls.analytic_lines.context:
+        if 'date' not in cls.analytic_lines.context:
             cls.analytic_lines.context['date'] = (
                 Eval('_parent_move', {}).get('date')
                 )
