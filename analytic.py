@@ -165,11 +165,13 @@ class AnalyticAccountAccountRequired(ModelSQL):
     @classmethod
     def __register__(cls, module_name):
         TableHandler = backend.get('TableHandler')
+        cursor = Transaction().cursor
+
         # Migration from 3.4: rename table
         old_table = 'analytic_account_account-required-account_account'
         new_table = 'analytic_acc_acc_required_acc_acc'
-        if TableHandler.table_exist(old_table):
-            TableHandler.table_rename(old_table, new_table)
+        if TableHandler.table_exist(cursor, old_table):
+            TableHandler.table_rename(cursor, old_table, new_table)
         super(AnalyticAccountAccountRequired, cls).__register__(
             module_name)
 
@@ -187,11 +189,13 @@ class AnalyticAccountAccountForbidden(ModelSQL):
     @classmethod
     def __register__(cls, module_name):
         TableHandler = backend.get('TableHandler')
+        cursor = Transaction().cursor
+
         # Migration from 3.4: rename table
         old_table = 'analytic_account_account-forbidden-account_account'
         new_table = 'analytic_acc_acc_forbidden_acc_acc'
-        if TableHandler.table_exist(old_table):
-            TableHandler.table_rename(old_table, new_table)
+        if TableHandler.table_exist(cursor, old_table):
+            TableHandler.table_rename(cursor, old_table, new_table)
         super(AnalyticAccountAccountForbidden, cls).__register__(
             module_name)
 
@@ -209,11 +213,13 @@ class AnalyticAccountAccountOptional(ModelSQL):
     @classmethod
     def __register__(cls, module_name):
         TableHandler = backend.get('TableHandler')
+        cursor = Transaction().cursor
+
         # Migration from 3.4: rename table
         old_table = 'analytic_account_account-optional-account_account'
         new_table = 'analytic_acc_acc_optional_acc_acc'
-        if TableHandler.table_exist(old_table):
-            TableHandler.table_rename(old_table, new_table)
+        if TableHandler.table_exist(cursor, old_table):
+            TableHandler.table_rename(cursor, old_table, new_table)
         super(AnalyticAccountAccountOptional, cls).__register__(
             module_name)
 
