@@ -155,31 +155,67 @@ class AnalyticAccount:
 class AnalyticAccountAccountRequired(ModelSQL):
     'Analytic Account - Account - Required'
     __name__ = 'analytic_account.account-required-account.account'
+    _table = 'analytic_acc_acc_required_acc_acc'
     analytic_account = fields.Many2One('analytic_account.account',
         'Analytic Account', ondelete='CASCADE', required=True, select=True,
         domain=[('type', '=', 'root')])
     account = fields.Many2One('account.account', 'Account',
         ondelete='CASCADE', required=True, select=True)
+
+    @classmethod
+    def __register__(cls, module_name):
+        TableHandler = backend.get('TableHandler')
+        # Migration from 3.4: rename table
+        old_table = 'analytic_account_account-required-account_account'
+        new_table = 'analytic_acc_acc_required_acc_acc'
+        if TableHandler.table_exist(old_table):
+            TableHandler.table_rename(old_table, new_table)
+        super(AnalyticAccountAccountRequired, cls).__register__(
+            module_name)
 
 
 class AnalyticAccountAccountForbidden(ModelSQL):
     'Analytic Account - Account - Forbidden'
     __name__ = 'analytic_account.account-forbidden-account.account'
+    _table = 'analytic_acc_acc_forbidden_acc_acc'
     analytic_account = fields.Many2One('analytic_account.account',
         'Analytic Account', ondelete='CASCADE', required=True, select=True,
         domain=[('type', '=', 'root')])
     account = fields.Many2One('account.account', 'Account',
         ondelete='CASCADE', required=True, select=True)
+
+    @classmethod
+    def __register__(cls, module_name):
+        TableHandler = backend.get('TableHandler')
+        # Migration from 3.4: rename table
+        old_table = 'analytic_account_account-forbidden-account_account'
+        new_table = 'analytic_acc_acc_forbidden_acc_acc'
+        if TableHandler.table_exist(old_table):
+            TableHandler.table_rename(old_table, new_table)
+        super(AnalyticAccountAccountForbidden, cls).__register__(
+            module_name)
 
 
 class AnalyticAccountAccountOptional(ModelSQL):
     'Analytic Account - Account - Optional'
     __name__ = 'analytic_account.account-optional-account.account'
+    _table = 'analytic_acc_acc_optional_acc_acc'
     analytic_account = fields.Many2One('analytic_account.account',
         'Analytic Account', ondelete='CASCADE', required=True, select=True,
         domain=[('type', '=', 'root')])
     account = fields.Many2One('account.account', 'Account',
         ondelete='CASCADE', required=True, select=True)
+
+    @classmethod
+    def __register__(cls, module_name):
+        TableHandler = backend.get('TableHandler')
+        # Migration from 3.4: rename table
+        old_table = 'analytic_account_account-optional-account_account'
+        new_table = 'analytic_acc_acc_optional_acc_acc'
+        if TableHandler.table_exist(old_table):
+            TableHandler.table_rename(old_table, new_table)
+        super(AnalyticAccountAccountOptional, cls).__register__(
+            module_name)
 
 
 _STATES = {
@@ -354,26 +390,21 @@ class AnalyticLine:
             return move.description
 
     def on_change_move_line(self):
-        res = {
-            'journal': None,
-            'name': None,
-            'party': None,
-            }
-        if not self.move_line:
-            return res
-
-        res['date'] = self.move_line.move.date
-        if not self.debit:
-            res['debit'] = self.move_line.debit
-        if not self.credit:
-            res['credit'] = self.move_line.credit
-        if not self.journal:
-            res['journal'] = self.move_line.move.journal.id
-        if not self.party and self.move_line.party:
-            res['party'] = self.move_line.party.id
-        if not self.name:
-            res['name'] = self.move_line.description
-        return res
+        self.journal = None,
+        self.name = None,
+        self.party = None,
+        if self.move_line:
+            self.date = self.move_line.move.date
+            if not self.debit:
+                self.debit = self.move_line.debit
+            if not self.credit:
+                self.credit = self.move_line.credit
+            if not self.journal:
+                self.journal = self.move_line.move.journal.id
+            if not self.party and self.move_line.party:
+                self.party = self.move_line.party.id
+            if not self.name:
+                self.name = self.move_line.description
 
     @classmethod
     def query_get(cls, table):
