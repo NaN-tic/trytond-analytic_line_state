@@ -14,10 +14,14 @@ from trytond.wizard import Wizard
 __all__ = ['AnalyticAccount', 'AnalyticAccountAccountRequired',
     'AnalyticAccountAccountForbidden', 'AnalyticAccountAccountOptional',
     'AnalyticLine', 'OpenChartAccountStart', 'OpenChartAccount']
-__metaclass__ = PoolMeta
+_STATES = {
+    'readonly': Eval('state') != 'draft',
+    }
+_DEPENDS = ['state']
 
 
 class AnalyticAccount:
+    __metaclass__ = PoolMeta
     __name__ = 'analytic_account.account'
 
     analytic_required = fields.Many2Many(
@@ -218,13 +222,8 @@ class AnalyticAccountAccountOptional(ModelSQL):
             module_name)
 
 
-_STATES = {
-    'readonly': Eval('state') != 'draft',
-    }
-_DEPENDS = ['state']
-
-
 class AnalyticLine:
+    __metaclass__ = PoolMeta
     __name__ = 'analytic_account.line'
 
     internal_company = fields.Many2One('company.company', 'Company',
@@ -510,5 +509,3 @@ class OpenChartAccount(Wizard):
                 'posted': self.start.posted,
                 })
         return action, context
-
-# vim:ft=python.tryton:
