@@ -357,16 +357,16 @@ class AnalyticLine:
     def default_state():
         return 'draft'
 
-    def default_move_line_field(field_name):
+    def _default_move_line_field(field_name):
         @staticmethod
         def default_value():
             return Transaction().context.get(field_name)
         return default_value
 
-    default_debit = default_move_line_field('debit')
-    default_credit = default_move_line_field('credit')
-    default_journal = default_move_line_field('journal')
-    default_party = default_move_line_field('party')
+    default_debit = _default_move_line_field('debit')
+    default_credit = _default_move_line_field('credit')
+    default_journal = _default_move_line_field('journal')
+    default_party = _default_move_line_field('party')
 
     @staticmethod
     def default_date():
