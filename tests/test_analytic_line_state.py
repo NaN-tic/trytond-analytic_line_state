@@ -125,6 +125,9 @@ class TestCase(ModuleTestCase):
             fiscalyear.save()
             fiscalyear.create_period([fiscalyear])
             period = fiscalyear.periods[0]
+
+            self.configure_analytic_accounts()
+
             journal_revenue, = Journal.search([
                     ('code', '=', 'REV'),
                     ])
@@ -247,6 +250,7 @@ class TestCase(ModuleTestCase):
             fiscalyear.save()
             fiscalyear.create_period([fiscalyear])
             period = fiscalyear.periods[0]
+
             journal_revenue, = Journal.search([
                     ('code', '=', 'REV'),
                     ])
@@ -363,7 +367,7 @@ class TestCase(ModuleTestCase):
             self.assertEqual(draft_move.state, 'posted')
 
     @with_transaction()
-    def test0030account_configuration(self):
+    def test0040account_configuration(self):
         'Test account configuration configuration'
         pool = Pool()
         Account = pool.get('account.account')
@@ -380,7 +384,6 @@ class TestCase(ModuleTestCase):
             root, = AnalyticAccount.search([
                     ('type', '=', 'root')
                     ])
-            self.assertGreater(len(root.analytic_pending_accounts), 0)
 
             # Create Chart and Fiscalyear
             create_chart(company)
@@ -388,6 +391,9 @@ class TestCase(ModuleTestCase):
             fiscalyear.save()
             fiscalyear.create_period([fiscalyear])
             period = fiscalyear.periods[0]
+
+            self.assertGreater(len(root.analytic_pending_accounts), 0)
+
             journal_revenue, = Journal.search([
                     ('code', '=', 'REV'),
                     ])
