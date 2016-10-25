@@ -384,14 +384,14 @@ class AnalyticLine:
             value = context.get(name)
             if value:
                 return value
-        if 'move' in context:
+        if context.get('move'):
             move = Pool().get('account.move')(context.get('move'))
             return move.description
 
     def on_change_move_line(self):
-        self.journal = None,
-        self.name = None,
-        self.party = None,
+        self.journal = None
+        self.name = None
+        self.party = None
         if self.move_line:
             self.date = self.move_line.move.date
             if not self.debit:
