@@ -24,7 +24,10 @@ class Account:
         'analytic_account.account-required-account.account', 'account',
         'analytic_account', 'Analytic Required', domain=[
             ('type', '=', 'root'),
-            ('company', '=', Eval('company')),
+            ['OR',
+                ('company', '=', Eval('company')),
+                ('company', '=', None),
+                ],
             ('id', 'not in', Eval('analytic_forbidden')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
@@ -35,7 +38,10 @@ class Account:
         'analytic_account.account-forbidden-account.account', 'account',
         'analytic_account', 'Analytic Forbidden', domain=[
             ('type', '=', 'root'),
-            ('company', '=', Eval('company')),
+            ['OR',
+                ('company', '=', Eval('company')),
+                ('company', '=', None),
+                ],
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
@@ -46,7 +52,10 @@ class Account:
         'analytic_account.account-optional-account.account', 'account',
         'analytic_account', 'Analytic Optional', domain=[
             ('type', '=', 'root'),
-            ('company', '=', Eval('company')),
+            ['OR',
+                ('company', '=', Eval('company')),
+                ('company', '=', None),
+                ],
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_forbidden')),
             ], states={

@@ -7,7 +7,7 @@ from sql.conditionals import Coalesce
 from trytond import backend
 from trytond.model import ModelSQL, ModelView, fields
 from trytond.pool import Pool, PoolMeta
-from trytond.pyson import Eval, Or, PYSONEncoder
+from trytond.pyson import Eval, Or, PYSONEncoder, If
 from trytond.transaction import Transaction
 from trytond.wizard import Wizard
 
@@ -24,7 +24,8 @@ class AnalyticAccount:
         'analytic_account.account-required-account.account',
         'analytic_account', 'account', 'Analytic Required', domain=[
             ('kind', '!=', 'view'),
-            ('company', '=', Eval('company')),
+            If(Eval('company', None) == None, (),
+                ('company', '=', Eval('company'))),
             ('id', 'not in', Eval('analytic_forbidden')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
@@ -35,7 +36,8 @@ class AnalyticAccount:
         'analytic_account.account-forbidden-account.account',
         'analytic_account', 'account', 'Analytic Forbidden', domain=[
             ('kind', '!=', 'view'),
-            ('company', '=', Eval('company')),
+            If(Eval('company', None) == None, (),
+                ('company', '=', Eval('company'))),
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
@@ -46,7 +48,8 @@ class AnalyticAccount:
         'analytic_account.account-optional-account.account',
         'analytic_account', 'account', 'Analytic Optional', domain=[
             ('kind', '!=', 'view'),
-            ('company', '=', Eval('company')),
+            If(Eval('company', None) == None, (),
+                ('company', '=', Eval('company'))),
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_forbidden')),
             ], states={
