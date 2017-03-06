@@ -142,7 +142,8 @@ class Move:
                 'missing_analytic_lines': (
                     'The Account Move "%(move)s" can\'t be posted because it '
                     'doesn\'t have analytic lines for the next required '
-                    'analytic hierachies: %(roots)s.'),
+                    'analytic hierachies: %(roots)s, for the account '
+                    '%(account)s.'),
                 'invalid_analytic_to_post_move': (
                     'The Account Move "%(move)s" can\'t be posted because the '
                     'Analytic Lines of hierachy "%(root)s" related to Move '
@@ -161,6 +162,7 @@ class Move:
                             'move': move.rec_name,
                             'roots': ', '.join(r.rec_name
                                 for r in required_roots),
+                            'account': line.account.rec_name,
                             })
 
                 for analytic_line in line.analytic_lines:
