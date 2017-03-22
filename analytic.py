@@ -392,8 +392,10 @@ class AnalyticLine:
             if value:
                 return value
         if context.get('move'):
-            move = Pool().get('account.move')(context.get('move'))
-            return move.description
+            move_id = context['move']
+            if move_id > 0:
+                move = Pool().get('account.move')(move_id)
+                return move.description
 
     def on_change_move_line(self):
         self.journal = None
@@ -405,7 +407,7 @@ class AnalyticLine:
                 self.debit = self.move_line.debit
             if not self.credit:
                 self.credit = self.move_line.credit
-            if not self.journal:
+            if not self.journal and self.move_line.move.journal:
                 self.journal = self.move_line.move.journal.id
             if not self.party and self.move_line.party:
                 self.party = self.move_line.party.id
