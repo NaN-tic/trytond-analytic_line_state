@@ -1,6 +1,8 @@
 Version 3.4.1 - 2015-01-20
 * Use auxiliar field internal_currency instead of redefine currency as a
   persistent field
+* Analytics accounts with a period with the type 'adjustment' are no longer
+  checked for required analytic accounts
 
 Version 3.4.0 - 2014-11-03
 
