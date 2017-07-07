@@ -163,6 +163,8 @@ class Move:
     def post(cls, moves):
         super(Move, cls).post(moves)
         for move in moves:
+            if move.period.type == 'adjustment':
+                continue
             for line in move.lines:
                 required_roots = list(line.account.analytic_required[:])
                 if not line.analytic_lines and line.account.analytic_required:
