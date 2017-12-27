@@ -1,6 +1,6 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
-from sql import Column
+from sql import Column, Null
 from sql.aggregate import Sum
 from sql.conditionals import Coalesce
 
@@ -79,7 +79,7 @@ class AnalyticAccount:
                 })
 
     @fields.depends('analytic_required', 'analytic_forbidden',
-        'analytic_optional')
+        'analytic_optional', 'company')
     def on_change_with_analytic_pending_accounts(self, name=None):
         Account = Pool().get('account.account')
 
@@ -238,8 +238,7 @@ class AnalyticLine:
     def __setup__(cls):
         super(AnalyticLine, cls).__setup__()
         cls._check_modify_exclude = ['state']
-        for fname in ('name', 'debit', 'credit', 'account', 'journal', 'date',
-                'reference', 'party', 'active'):
+        for fname in ['debit', 'credit', 'account', 'date']:
             field = getattr(cls, fname)
             if field.states.get('readonly'):
                 field.states['readonly'] = Or(field.states['readonly'],
@@ -255,23 +254,11 @@ class AnalyticLine:
         elif company_domain not in cls.move_line.domain:
             cls.move_line.domain.append(company_domain)
 
-        cls.journal.required = False
-        cls.journal.states = {
-            'required': Eval('state') != 'draft',
-            'readonly': Eval('state') != 'draft',
-            }
-
         cls.move_line.required = False
         cls.move_line.states = {
             'required': Eval('state') != 'draft',
             'readonly': Eval('state') != 'draft',
             }
-        if not cls.move_line.on_change:
-            cls.move_line.on_change = []
-        for name in ['move_line', 'journal', 'name', 'party', 'debit',
-                'credit']:
-            if name not in cls.move_line.on_change:
-                cls.move_line.on_change.append(name)
         cls.move_line.depends += ['internal_company', 'state']
 
         cls._error_messages.update({
@@ -279,14 +266,6 @@ class AnalyticLine:
                     'The Analytic Line "%(line)s" is related to an Account '
                     'Move Line of Account "%(account)s" which has the '
                     'analytics forbidden for the Line\'s Analytic hierarchy.'),
-                })
-        cls._buttons.update({
-                'post': {
-                    'invisible': Eval('state') == 'posted',
-                    },
-                'draft': {
-                    'invisible': Eval('state') == 'draft',
-                    },
                 })
 
     @classmethod
@@ -308,7 +287,7 @@ class AnalyticLine:
 
         table = TableHandler(cls, module_name)
 
-        is_sqlite = 'backend.sqlite.table.TableHandler' in str(TableHandler)
+        is_sqlite = backend.name() == 'sqlite'
         # Migration from DB without this module
         # table.not_null_action('move_line', action='remove') don't execute the
         # action if the field is not defined in this module
@@ -319,8 +298,8 @@ class AnalyticLine:
 
         cursor.execute(*sql_table.update(columns=[sql_table.state],
                 values=['posted'],
-                where=((sql_table.state == None) &
-                    (sql_table.move_line == None))))
+                where=((sql_table.state == Null) &
+                    (sql_table.move_line == Null))))
         if copy_company and not is_sqlite:
             join = move_line_sql_table.join(account_sql_table)
             join.condition = move_line_sql_table.account == join.right.id
@@ -334,15 +313,12 @@ class AnalyticLine:
         return Transaction().context.get('company')
 
     @fields.depends('internal_company')
-    def on_change_with_currency(self, name=None):
-        if self.internal_company:
-            return self.internal_company.currency.id
-
-    @fields.depends('internal_company')
     def on_change_with_currency_digits(self, name=None):
+        digits = super(AnalyticLine, self).on_change_with_currency_digits(
+            name=name)
         if self.internal_company:
-            return self.internal_company.currency.digits
-        return 2
+            digits = self.internal_company.currency.digits
+        return digits
 
     @fields.depends('internal_company')
     def on_change_with_company(self, name=None):
@@ -356,57 +332,6 @@ class AnalyticLine:
     @staticmethod
     def default_state():
         return 'draft'
-
-    def _default_move_line_field(field_name):
-        @staticmethod
-        def default_value():
-            return Transaction().context.get(field_name)
-        return default_value
-
-    default_debit = _default_move_line_field('debit')
-    default_credit = _default_move_line_field('credit')
-    default_journal = _default_move_line_field('journal')
-    default_party = _default_move_line_field('party')
-
-    @staticmethod
-    def default_date():
-        context = Transaction().context
-        value = context.get('date')
-        if value:
-            return value
-        if 'move' in context:
-            move = Pool().get('account.move')(context.get('move'))
-            return move.date
-
-    @staticmethod
-    def default_name():
-        context = Transaction().context
-        for name in ('description', 'move_description'):
-            value = context.get(name)
-            if value:
-                return value
-        if context.get('move'):
-            move_id = context['move']
-            if move_id > 0:
-                move = Pool().get('account.move')(move_id)
-                return move.description
-
-    def on_change_move_line(self):
-        self.journal = None
-        self.name = None
-        self.party = None
-        if self.move_line:
-            self.date = self.move_line.move.date
-            if not self.debit:
-                self.debit = self.move_line.debit
-            if not self.credit:
-                self.credit = self.move_line.credit
-            if not self.journal and self.move_line.move.journal:
-                self.journal = self.move_line.move.journal.id
-            if not self.party and self.move_line.party:
-                self.party = self.move_line.party.id
-            if not self.name:
-                self.name = self.move_line.description
 
     @classmethod
     def query_get(cls, table):

@@ -23,37 +23,6 @@
             <field name="name">analytic_line_tree</field>
         </record>
 
-        <!--<record model="ir.action.act_window" id="analytic_account.act_line_form">
-            <field name="search_value">[('create_date', '>=', DateTime(hour=0, minute=0, second=0, microsecond=0, delta_years=-1))]"
-                pyson="1"/>
-        </record>
-
-        <record model="ir.action.act_window.domain"
-            id="act_line_form_domain_draft">
-            <field name="name">Draft</field>
-            <field name="sequence" eval="10"/>
-            <field name="domain"
-                eval="[('state', '=', 'draft')]"
-                pyson="1"/>
-            <field name="act_window" ref="analytic_account.act_line_form"/>
-        </record>
-        <record model="ir.action.act_window.domain"
-            id="act_line_form_domain_valid">
-            <field name="name">Valid</field>
-            <field name="sequence" eval="20"/>
-            <field name="domain"
-                eval="[('state', '=', 'valid')]"
-                pyson="1"/>
-            <field name="act_window" ref="analytic_account.act_line_form"/>
-        </record>
-        <record model="ir.action.act_window.domain"
-            id="act_line_form_domain_all">
-            <field name="name">All</field>
-            <field name="sequence" eval="30"/>
-            <field name="domain">[]</field>
-            <field name="act_window" ref="analytic_account.act_line_form"/>
-        </record>-->
-
         <record model="ir.rule.group" id="rule_group_analytic_account_line">
             <field name="model" search="[('model', '=', 'analytic_account.line')]"/>
             <field name="global_p" eval="True"/>

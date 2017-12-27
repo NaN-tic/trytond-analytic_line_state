@@ -2,16 +2,16 @@
 # copyright notices and license terms.
 from itertools import chain
 
-from trytond.model import ModelView, fields
+from trytond.model import ModelView, fields, dualmethod
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval
 
 __all__ = ['Configuration', 'Account', 'Move', 'MoveLine']
-__metaclass__ = PoolMeta
 
 
 class Configuration:
     __name__ = 'account.configuration'
+    __metaclass__ = PoolMeta
     validate_analytic = fields.Boolean('Validate Analytic',
         help='If marked it will prevent to post a move to an account that '
         'has Pending Analytic accounts.')
@@ -19,6 +19,7 @@ class Configuration:
 
 class Account:
     __name__ = 'account.account'
+    __metaclass__ = PoolMeta
 
     analytic_required = fields.Many2Many(
         'analytic_account.account-required-account.account', 'account',
@@ -79,7 +80,7 @@ class Account:
                 })
 
     @fields.depends('analytic_required', 'analytic_forbidden',
-            'analytic_optional')
+            'analytic_optional', 'company')
     def on_change_with_analytic_pending_accounts(self, name=None):
         AnalyticAccount = Pool().get('analytic_account.account')
 
@@ -134,6 +135,7 @@ class Account:
 
 class Move:
     __name__ = 'account.move'
+    __metaclass__ = PoolMeta
 
     @classmethod
     def __setup__(cls):
@@ -187,20 +189,11 @@ class Move:
 
 class MoveLine:
     __name__ = 'account.move.line'
+    __metaclass__ = PoolMeta
 
     @classmethod
     def __setup__(cls):
         super(MoveLine, cls).__setup__()
-        if not cls.analytic_lines.context:
-            cls.analytic_lines.context = {}
-        for name in ('debit', 'credit', 'journal', 'move', 'party',
-                'description', 'move_description'):
-            if name not in cls.analytic_lines.context:
-                cls.analytic_lines.context[name] = Eval(name)
-        if 'date' not in cls.analytic_lines.context:
-            cls.analytic_lines.context['date'] = (
-                Eval('_parent_move', {}).get('date')
-                )
         cls._error_messages.update({
                 'account_analytic_not_configured': (
                     'The Move Line "%(line)s" is related to the Account '
@@ -217,8 +210,8 @@ class MoveLine:
     def check_account_analytic_configuration(self):
         pool = Pool()
         Config = pool.get('account.configuration')
-        config = Config.get_singleton()
-        if config and config.validate_analytic:
+        config = Config(1)
+        if config.validate_analytic:
             if self.account.analytic_pending_accounts:
                 self.raise_user_error('account_analytic_not_configured', {
                         'line': self.rec_name,
@@ -275,3 +268,15 @@ class MoveLine:
                 'state': 'draft',
                 })
         super(MoveLine, cls).delete(lines)
+
+    @dualmethod
+    def save(cls, lines):
+        # XXX: as required move_line is dropped on analytic line,
+        # this can be called with None value
+        super(MoveLine, cls).save(filter(None, lines))
+
+    @classmethod
+    def set_analytic_state(cls, lines):
+        # XXX: as required move_line is dropped on analytic line,
+        # this can be called with None value
+        super(MoveLine, cls).set_analytic_state(filter(None, lines))

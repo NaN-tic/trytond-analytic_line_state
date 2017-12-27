@@ -2,7 +2,7 @@
 <!-- The COPYRIGHT file at the top level of this repository contains the full
      copyright notices and license terms. -->
 <data>
-    <xpath expr="/form/notebook/page/field[@name='currency']" position="after">
+    <xpath expr="/form" position="inside">
         <label name="internal_company"/>
         <field name="internal_company"/>
         <newline/>

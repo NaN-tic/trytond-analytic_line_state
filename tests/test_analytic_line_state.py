@@ -170,12 +170,10 @@ class TestCase(ModuleTestCase):
             # # Can create move with analytic in analytic required account and
             # without analytic in forbidden account
             analytic_lines_value = [('create', [{
-                            'name': 'Contribution',
                             'debit': Decimal(0),
                             'credit': Decimal(30000),
                             'account': project1.id,
                             'date': period.start_date,
-                            'journal': journal_revenue.id,
                             }]),
                 ]
             valid_move_vals = {
@@ -288,13 +286,10 @@ class TestCase(ModuleTestCase):
                                     'credit': Decimal(30000),
                                     'analytic_lines': [
                                         ('create', [{
-                                                    'name': 'Contribution',
                                                     'debit': Decimal(0),
                                                     'credit': Decimal(30000),
                                                     'date': today,
                                                     'account': project1.id,
-                                                    'journal':
-                                                        journal_revenue.id,
                                                     }]),
                                         ],
                                     }, {
@@ -333,12 +328,10 @@ class TestCase(ModuleTestCase):
             expense_move_line = [l for l in draft_move.lines
                 if l.account.kind == 'expense'][0]
             line1, = AnalyticLine.create([{
-                        'name': 'Materials purchase',
                         'credit': Decimal(0),
                         'debit': Decimal(600),
                         'account': project1.id,
                         'move_line': expense_move_line.id,
-                        'journal': journal_expense.id,
                         'date': today - relativedelta(days=15),
                         }])
             self.assertEqual(line1.state, 'draft')
@@ -348,11 +341,9 @@ class TestCase(ModuleTestCase):
             #    Move.post([draft_move])
 
             line2, = AnalyticLine.create([{
-                        'name': 'Salaries',
                         'credit': Decimal(0),
                         'debit': Decimal(500),
                         'account': project1.id,
-                        'journal': journal_expense.id,
                         'date': today - relativedelta(days=10),
                         }])
             self.assertEqual(line1.state, 'draft')
@@ -417,13 +408,10 @@ class TestCase(ModuleTestCase):
                                     'credit': Decimal(30000),
                                     'analytic_lines': [
                                         ('create', [{
-                                                    'name': 'Contribution',
                                                     'debit': Decimal(0),
                                                     'credit': Decimal(30000),
                                                     'account': project1.id,
                                                     'date': period.start_date,
-                                                    'journal':
-                                                        journal_revenue.id,
                                                     }]),
                                         ],
                                     }, {

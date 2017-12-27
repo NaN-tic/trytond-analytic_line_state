@@ -2,8 +2,8 @@
 # copyright notices and license terms.
 from trytond.pool import Pool
 
-import account
-import analytic
+from . import account
+from . import analytic
 
 
 def register():
