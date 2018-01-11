@@ -14,10 +14,10 @@ from trytond.wizard import Wizard
 __all__ = ['AnalyticAccount', 'AnalyticAccountAccountRequired',
     'AnalyticAccountAccountForbidden', 'AnalyticAccountAccountOptional',
     'AnalyticLine', 'OpenChartAccountStart', 'OpenChartAccount']
-__metaclass__ = PoolMeta
 
 
 class AnalyticAccount:
+    __metaclass__ = PoolMeta
     __name__ = 'analytic_account.account'
 
     analytic_required = fields.Many2Many(
@@ -225,6 +225,7 @@ _DEPENDS = ['state']
 
 
 class AnalyticLine:
+    __metaclass__ = PoolMeta
     __name__ = 'analytic_account.line'
 
     internal_company = fields.Many2One('company.company', 'Company',
