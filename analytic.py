@@ -370,7 +370,7 @@ class AnalyticLine:
             res['debit'] = self.move_line.debit
         if not self.credit:
             res['credit'] = self.move_line.credit
-        if not self.journal:
+        if not self.journal and self.move_line.move.journal:
             res['journal'] = self.move_line.move.journal.id
         if not self.party and self.move_line.party:
             res['party'] = self.move_line.party.id
