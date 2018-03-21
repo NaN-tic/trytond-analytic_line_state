@@ -7,7 +7,7 @@ from sql.conditionals import Coalesce
 from trytond import backend
 from trytond.model import ModelSQL, ModelView, fields
 from trytond.pool import Pool, PoolMeta
-from trytond.pyson import Eval, Or, PYSONEncoder
+from trytond.pyson import Eval, Or, PYSONEncoder, PYSONDecoder
 from trytond.transaction import Transaction
 from trytond.wizard import Wizard
 
@@ -512,11 +512,12 @@ class OpenChartAccount(Wizard):
 
     def do_open_(self, action):
         action, context = super(OpenChartAccount, self).do_open_(action)
-        action['pyson_context'] = PYSONEncoder().encode({
-                'start_date': self.start.start_date,
-                'end_date': self.start.end_date,
+        pyson_context = PYSONDecoder().decode(action['pyson_context'])
+        pyson_context.update({
                 'posted': self.start.posted,
+                'date': self.start.end_date,
                 })
+        action['pyson_context'] = PYSONEncoder().encode(pyson_context)
         return action, context
 
 # vim:ft=python.tryton:
