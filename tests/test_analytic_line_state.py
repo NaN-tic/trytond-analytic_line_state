@@ -81,13 +81,13 @@ class TestCase(ModuleTestCase):
                 ])
         AnalyticAccount.write(roots, {
                     'analytic_required': [
-                        ('add', map(int, revenue_expense)),
+                        ('add', [x.id for x in revenue_expense]),
                         ],
                     'analytic_forbidden': [
-                        ('add', map(int, receivable_payable)),
+                        ('add', [x.id for x in receivable_payable]),
                         ],
                     'analytic_optional': [
-                        ('add', [a.id for a in other]),
+                        ('add', [x.id for x in other]),
                         ],
                 })
         # Check all General accounts are configured

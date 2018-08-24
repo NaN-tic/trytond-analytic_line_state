@@ -9,17 +9,15 @@ from trytond.pyson import Eval
 __all__ = ['Configuration', 'Account', 'Move', 'MoveLine']
 
 
-class Configuration:
+class Configuration(metaclass=PoolMeta):
     __name__ = 'account.configuration'
-    __metaclass__ = PoolMeta
     validate_analytic = fields.Boolean('Validate Analytic',
         help='If marked it will prevent to post a move to an account that '
         'has Pending Analytic accounts.')
 
 
-class Account:
+class Account(metaclass=PoolMeta):
     __name__ = 'account.account'
-    __metaclass__ = PoolMeta
 
     analytic_required = fields.Many2Many(
         'analytic_account.account-required-account.account', 'account',
@@ -84,15 +82,15 @@ class Account:
     def on_change_with_analytic_pending_accounts(self, name=None):
         AnalyticAccount = Pool().get('analytic_account.account')
 
-        current_accounts = map(int, self.analytic_required)
-        current_accounts += map(int, self.analytic_forbidden)
-        current_accounts += map(int, self.analytic_optional)
+        current_accounts = [x.id for x in self.analytic_required]
+        current_accounts += [x.id for x in self.analytic_forbidden]
+        current_accounts += [x.id for x in self.analytic_optional]
         pending_accounts = AnalyticAccount.search([
                 ('type', '=', 'root'),
                 ('company', '=', self.company),
                 ('id', 'not in', current_accounts),
                 ])
-        return map(int, pending_accounts)
+        return [x.id for x in pending_accounts]
 
     def analytic_constraint(self, analytic_account):
         if analytic_account.root in self.analytic_required:
@@ -133,9 +131,8 @@ class Account:
                     })
 
 
-class Move:
+class Move(metaclass=PoolMeta):
     __name__ = 'account.move'
-    __metaclass__ = PoolMeta
 
     @classmethod
     def __setup__(cls):
@@ -187,9 +184,8 @@ class Move:
                             })
 
 
-class MoveLine:
+class MoveLine(metaclass=PoolMeta):
     __name__ = 'account.move.line'
-    __metaclass__ = PoolMeta
 
     @classmethod
     def __setup__(cls):
@@ -273,10 +269,10 @@ class MoveLine:
     def save(cls, lines):
         # XXX: as required move_line is dropped on analytic line,
         # this can be called with None value
-        super(MoveLine, cls).save(filter(None, lines))
+        super(MoveLine, cls).save([x for x in lines if x])
 
     @classmethod
     def set_analytic_state(cls, lines):
         # XXX: as required move_line is dropped on analytic line,
         # this can be called with None value
-        super(MoveLine, cls).set_analytic_state(filter(None, lines))
+        super(MoveLine, cls).set_analytic_state([x for x in lines if x])

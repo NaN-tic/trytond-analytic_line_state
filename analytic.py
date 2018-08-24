@@ -16,8 +16,7 @@ __all__ = ['AnalyticAccount', 'AnalyticAccountAccountRequired',
     'AnalyticLine', 'OpenChartAccountStart', 'OpenChartAccount']
 
 
-class AnalyticAccount:
-    __metaclass__ = PoolMeta
+class AnalyticAccount(metaclass=PoolMeta):
     __name__ = 'analytic_account.account'
 
     analytic_required = fields.Many2Many(
@@ -83,15 +82,15 @@ class AnalyticAccount:
     def on_change_with_analytic_pending_accounts(self, name=None):
         Account = Pool().get('account.account')
 
-        current_accounts = map(int, self.analytic_required)
-        current_accounts += map(int, self.analytic_forbidden)
-        current_accounts += map(int, self.analytic_optional)
+        current_accounts = [x.id for x in self.analytic_required]
+        current_accounts += [x.id for x in self.analytic_forbidden]
+        current_accounts += [x.id for x in self.analytic_optional]
         pending_accounts = Account.search([
                 ('kind', '!=', 'view'),
                 ('company', '=', self.company),
                 ('id', 'not in', current_accounts),
                 ])
-        return map(int, pending_accounts)
+        return [x.id for x in pending_accounts]
 
     @classmethod
     def query_get(cls, ids, names):
@@ -224,8 +223,7 @@ _STATES = {
 _DEPENDS = ['state']
 
 
-class AnalyticLine:
-    __metaclass__ = PoolMeta
+class AnalyticLine(metaclass=PoolMeta):
     __name__ = 'analytic_account.line'
 
     internal_company = fields.Many2One('company.company', 'Company',
