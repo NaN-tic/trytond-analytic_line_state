@@ -5,6 +5,8 @@ from itertools import chain
 from trytond.model import ModelView, fields, dualmethod
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval
+from trytond.i18n import gettext
+from trytond.exceptions import UserError
 
 __all__ = ['Configuration', 'Account', 'Move', 'MoveLine']
 
@@ -14,7 +16,6 @@ class Configuration(metaclass=PoolMeta):
     validate_analytic = fields.Boolean('Validate Analytic',
         help='If marked it will prevent to post a move to an account that '
         'has Pending Analytic accounts.')
-
 
 class Account(metaclass=PoolMeta):
     __name__ = 'account.account'
@@ -59,23 +60,6 @@ class Account(metaclass=PoolMeta):
                 }, depends=['kind']),
         'on_change_with_analytic_pending_accounts')
 
-    @classmethod
-    def __setup__(cls):
-        super(Account, cls).__setup__()
-        cls._error_messages.update({
-                'analytic_account_required_forbidden': (
-                    'The Account "%(account)s" has configured the next '
-                    'Analytic Roots as Required and Forbidden at once: '
-                    '%(roots)s.'),
-                'analytic_account_required_optional': (
-                    'The Account "%(account)s" has configured the next '
-                    'Analytic Roots as Required and Optional at once: '
-                    '%(roots)s.'),
-                'analytic_account_forbidden_optional': (
-                    'The Account "%(account)s" has configured the next '
-                    'Analytic Roots as Forbidden and Optional at once: '
-                    '%(roots)s.'),
-                })
 
     @fields.depends('analytic_required', 'analytic_forbidden',
             'analytic_optional', 'company')
@@ -112,41 +96,31 @@ class Account(metaclass=PoolMeta):
         forbidden = set(self.analytic_forbidden)
         optional = set(self.analytic_optional)
         if required & forbidden:
-            self.raise_user_error('analytic_account_required_forbidden', {
-                    'account': self.rec_name,
-                    'roots': ', '.join(a.rec_name
+            raise UserError(gettext(
+                'analytic_line_state.analytic_account_required_forbidden',
+                    account=self.rec_name,
+                    roots=', '.join(a.rec_name
                         for a in (required & forbidden))
-                    })
+                    ))
         if required & optional:
-            self.raise_user_error('analytic_account_required_optional', {
-                    'account': self.rec_name,
-                    'roots': ', '.join(a.rec_name
+            raise UserError(gettext(
+                'analytic_line_state.analytic_account_required_optional',
+                    account=self.rec_name,
+                    roots=', '.join(a.rec_name
                         for a in (required & optional))
-                    })
+                    ))
         if forbidden & optional:
-            self.raise_user_error('analytic_account_forbidden_optional', {
-                    'account': self.rec_name,
-                    'roots': ', '.join(a.rec_name
+            raise UserError(gettext(
+                'analytic_line_state.analytic_account_forbidden_optional',
+                    account=self.rec_name,
+                    roots=', '.join(a.rec_name
                         for a in (forbidden & optional))
-                    })
+                    ))
 
 
 class Move(metaclass=PoolMeta):
     __name__ = 'account.move'
 
-    @classmethod
-    def __setup__(cls):
-        super(Move, cls).__setup__()
-        cls._error_messages.update({
-                'missing_analytic_lines': (
-                    'The Account Move "%(move)s" can\'t be posted because it '
-                    'doesn\'t have analytic lines for the next required '
-                    'analytic hierachies: %(roots)s.'),
-                'invalid_analytic_to_post_move': (
-                    'The Account Move "%(move)s" can\'t be posted because the '
-                    'Analytic Lines of hierachy "%(root)s" related to Move '
-                    'Line "%(line)s" are not valid.'),
-                })
 
     @classmethod
     @ModelView.button
@@ -158,11 +132,12 @@ class Move(metaclass=PoolMeta):
             for line in move.lines:
                 required_roots = list(line.account.analytic_required[:])
                 if not line.analytic_lines and line.account.analytic_required:
-                    cls.raise_user_error('missing_analytic_lines', {
-                            'move': move.rec_name,
-                            'roots': ', '.join(r.rec_name
+                    raise UserError(gettext(
+                        'analytic_line_state.missing_analytic_lines',
+                            move=move.rec_name,
+                            roots=', '.join(r.rec_name
                                 for r in required_roots),
-                            })
+                            ))
 
                 for analytic_line in line.analytic_lines:
                     if analytic_line.account.root in required_roots:
@@ -171,32 +146,23 @@ class Move(metaclass=PoolMeta):
                         analytic_line.account)
                     if (constraint == 'required' and
                             analytic_line.state != 'valid'):
-                        cls.raise_user_error('invalid_analytic_to_post_move', {
-                                'move': move.rec_name,
-                                'line': line.rec_name,
-                                'root': analytic_line.account.root.rec_name,
-                                })
+                        raise UserError(gettext(
+                            'analytic_line_state.invalid_analytic_to_post_move',
+                                move=move.rec_name,
+                                line=line.rec_name,
+                                root=analytic_line.account.root.rec_name,
+                                ))
                 if required_roots:
-                    cls.raise_user_error('missing_analytic_lines', {
-                            'move': move.rec_name,
-                            'roots': ', '.join(r.rec_name
+                    raise UserError(gettext(
+                        'analytic_line_state.missing_analytic_lines',
+                            move=move.rec_name,
+                            roots=', '.join(r.rec_name
                                 for r in required_roots),
-                            })
+                            ))
 
 
 class MoveLine(metaclass=PoolMeta):
     __name__ = 'account.move.line'
-
-    @classmethod
-    def __setup__(cls):
-        super(MoveLine, cls).__setup__()
-        cls._error_messages.update({
-                'account_analytic_not_configured': (
-                    'The Move Line "%(line)s" is related to the Account '
-                    '"%(account)s" which is not configured for all Analytic '
-                    'hierarchies.'),
-                })
-
 
     @classmethod
     def check_modify(cls, lines, modified_fields=None):
@@ -220,10 +186,11 @@ class MoveLine(metaclass=PoolMeta):
         config = Config(1)
         if config.validate_analytic:
             if self.account.analytic_pending_accounts:
-                self.raise_user_error('account_analytic_not_configured', {
-                        'line': self.rec_name,
-                        'account': self.account.rec_name,
-                        })
+                raise UserError(gettext(
+                    'analytic_line_state.account_analytic_not_configured',
+                        line=self.rec_name,
+                        account=self.account.rec_name,
+                        ))
 
     @classmethod
     def validate_analytic_lines(cls, lines):

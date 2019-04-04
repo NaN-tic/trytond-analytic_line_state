@@ -10,6 +10,8 @@ from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, Or, PYSONEncoder, PYSONDecoder
 from trytond.transaction import Transaction
 from trytond.wizard import Wizard
+from trytond.i18n import gettext
+from trytond.exceptions import UserError
 
 __all__ = ['AnalyticAccount', 'AnalyticAccountAccountRequired',
     'AnalyticAccountAccountForbidden', 'AnalyticAccountAccountOptional',
@@ -58,24 +60,6 @@ class AnalyticAccount(metaclass=PoolMeta):
                 },
             depends=['type']),
         'on_change_with_analytic_pending_accounts')
-
-    @classmethod
-    def __setup__(cls):
-        super(AnalyticAccount, cls).__setup__()
-        cls._error_messages.update({
-                'analytic_account_required_forbidden': (
-                    'The next accounts are configured as Required and '
-                    'Forbidden for the Analytic Root "%(root)s": '
-                    '%(accounts)s.'),
-                'analytic_account_required_optional': (
-                    'The next accounts are configured as Required and '
-                    'Optional for the Analytic Root "%(root)s": '
-                    '%(accounts)s.'),
-                'analytic_account_forbidden_optional': (
-                    'The next accounts are configured as Forbidden and '
-                    'Optional for the Analytic Root "%(root)s": '
-                    '%(accounts)s.'),
-                })
 
     @fields.depends('analytic_required', 'analytic_forbidden',
         'analytic_optional', 'company')
@@ -132,23 +116,26 @@ class AnalyticAccount(metaclass=PoolMeta):
         forbidden = set(self.analytic_forbidden)
         optional = set(self.analytic_optional)
         if required & forbidden:
-            self.raise_user_error('analytic_account_required_forbidden', {
-                    'root': self.rec_name,
-                    'accounts': ', '.join([a.rec_name
+            raise UserError(gettext(
+                'analytic_line_state.analytic_account_required_forbidden',
+                    root=self.rec_name,
+                    accounts=', '.join([a.rec_name
                             for a in (required & forbidden)])
-                    })
+                    ))
         if required & optional:
-            self.raise_user_error('analytic_account_required_optional', {
-                    'root': self.rec_name,
-                    'accounts': ', '.join([a.rec_name
+            raise UserError(gettext(
+                'analytic_line_state.analytic_account_required_optional',
+                    root=self.rec_name,
+                    accounts=', '.join([a.rec_name
                             for a in (required & optional)])
-                    })
+                    ))
         if forbidden & optional:
-            self.raise_user_error('analytic_account_forbidden_optional', {
-                    'root': self.rec_name,
-                    'accounts': ', '.join([a.rec_name
+            raise UserError(gettext(
+                'analytic_line_state.analytic_account_forbidden_optional',
+                    root=self.rec_name,
+                    accounts=', '.join([a.rec_name
                             for a in (forbidden & optional)])
-                    })
+                    ))
 
 
 class AnalyticAccountAccountRequired(ModelSQL):
@@ -260,12 +247,6 @@ class AnalyticLine(metaclass=PoolMeta):
             }
         cls.move_line.depends += ['internal_company', 'state']
 
-        cls._error_messages.update({
-                'move_line_account_analytic_forbidden': (
-                    'The Analytic Line "%(line)s" is related to an Account '
-                    'Move Line of Account "%(account)s" which has the '
-                    'analytics forbidden for the Line\'s Analytic hierarchy.'),
-                })
 
     @classmethod
     def __register__(cls, module_name):
@@ -353,10 +334,11 @@ class AnalyticLine(metaclass=PoolMeta):
         if (self.move_line and
                 self.move_line.account.analytic_constraint(self.account)
                 == 'forbidden'):
-            self.raise_user_error('move_line_account_analytic_forbidden', {
-                    'line': self.rec_name,
-                    'account': self.move_line.account.rec_name,
-                    })
+            raise UserError(gettext(
+                'analytic_line_state.move_line_account_analytic_forbidden',
+                    line=self.rec_name,
+                    account=self.move_line.account.rec_name,
+                    ))
 
     @classmethod
     def check_modify(cls, lines):
