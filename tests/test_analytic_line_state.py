@@ -68,13 +68,19 @@ class TestCase(ModuleTestCase):
         Account = pool.get('account.account')
         AnalyticAccount = pool.get('analytic_account.account')
         revenue_expense = Account.search([
-                ('kind', 'in', ('revenue', 'expense')),
+                'OR',('type.expense', '=', True),
+                ('type.revenue', '=', True)
                 ])
         receivable_payable = Account.search([
-                ('kind', 'in', ('receivable', 'payable')),
+                'OR', ('type.payable', '=', True),
+                ('type.receivable', '=', True)
                 ])
         other = Account.search([
-                ('kind', '=', 'other'),
+                ('type','!=', None),
+                ('type.revenue', '=', False),
+                ('type.expense', '=', False),
+                ('type.payable', '=', False),
+                ('type.receivable', '=', False)
                 ])
         roots = AnalyticAccount.search([
                 ('type', '=', 'root')
@@ -135,16 +141,16 @@ class TestCase(ModuleTestCase):
                     ('code', '=', 'EXP'),
                     ])
             revenue, = Account.search([
-                    ('kind', '=', 'revenue'),
+                    ('type.revenue', '=', True)
                     ])
             receivable, = Account.search([
-                    ('kind', '=', 'receivable'),
+                    ('type.receivable', '=', True)
                     ])
             expense, = Account.search([
-                    ('kind', '=', 'expense'),
+                    ('type.expense', '=', True)
                     ])
             payable, = Account.search([
-                    ('kind', '=', 'payable'),
+                    ('type.payable', '=', True)
                     ])
             project1, = AnalyticAccount.search([
                     ('code', '=', 'P1'),
@@ -256,16 +262,16 @@ class TestCase(ModuleTestCase):
                     ('code', '=', 'EXP'),
                     ])
             revenue, = Account.search([
-                    ('kind', '=', 'revenue'),
+                    ('type.expense', '=', True),
                     ])
             receivable, = Account.search([
-                    ('kind', '=', 'receivable'),
+                    ('type.receivable', '=', True),
                     ])
             expense, = Account.search([
-                    ('kind', '=', 'expense'),
+                    ('type.expense', '=', True),
                     ])
             payable, = Account.search([
-                    ('kind', '=', 'payable'),
+                    ('type.payable', '=', True),
                     ])
             project1, = AnalyticAccount.search([
                     ('code', '=', 'P1'),
@@ -326,7 +332,7 @@ class TestCase(ModuleTestCase):
             # Create some analytic lines on draft move and check how their
             # state change
             expense_move_line = [l for l in draft_move.lines
-                if l.account.kind == 'expense'][0]
+                if l.account.type.expense][0]
             line1, = AnalyticLine.create([{
                         'credit': Decimal(0),
                         'debit': Decimal(600),
@@ -389,10 +395,13 @@ class TestCase(ModuleTestCase):
                     ('code', '=', 'REV'),
                     ])
             other, = Account.search([
-                    ('kind', '=', 'other'),
+                    ('type.revenue', '=', False),
+                    ('type.receivable', '=', False),
+                    ('type.expense', '=', False),
+                    ('type.payable', '=', False),
                     ], limit=1)
             receivable, = Account.search([
-                    ('kind', '=', 'receivable'),
+                    ('type.receivable', '=', True),
                     ])
             project1, = AnalyticAccount.search([
                     ('code', '=', 'P1'),

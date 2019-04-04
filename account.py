@@ -4,7 +4,7 @@ from itertools import chain
 
 from trytond.model import ModelView, fields, dualmethod
 from trytond.pool import Pool, PoolMeta
-from trytond.pyson import Eval
+from trytond.pyson import Eval, Bool
 from trytond.i18n import gettext
 from trytond.exceptions import UserError
 
@@ -28,9 +28,9 @@ class Account(metaclass=PoolMeta):
             ('id', 'not in', Eval('analytic_forbidden')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
-            'invisible': Eval('kind') == 'view',
+            'invisible':~Bool(Eval('type')),
             },
-        depends=['company', 'analytic_forbidden', 'analytic_optional', 'kind'])
+        depends=['company', 'analytic_forbidden', 'analytic_optional', 'type'])
     analytic_forbidden = fields.Many2Many(
         'analytic_account.account-forbidden-account.account', 'account',
         'analytic_account', 'Analytic Forbidden', domain=[
@@ -39,9 +39,9 @@ class Account(metaclass=PoolMeta):
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
-            'invisible': Eval('kind') == 'view',
+            'invisible':~Bool(Eval('type')),
             },
-        depends=['company', 'analytic_required', 'analytic_optional', 'kind'])
+        depends=['company', 'analytic_required', 'analytic_optional', 'type'])
     analytic_optional = fields.Many2Many(
         'analytic_account.account-optional-account.account', 'account',
         'analytic_account', 'Analytic Optional', domain=[
@@ -50,14 +50,14 @@ class Account(metaclass=PoolMeta):
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_forbidden')),
             ], states={
-            'invisible': Eval('kind') == 'view',
+            'invisible':~Bool(Eval('type')),
             },
-        depends=['company', 'analytic_required', 'analytic_forbidden', 'kind'])
+        depends=['company', 'analytic_required', 'analytic_forbidden', 'type'])
     analytic_pending_accounts = fields.Function(
         fields.Many2Many('analytic_account.account', None, None,
             'Pending Accounts', states={
-                'invisible': Eval('kind') == 'view',
-                }, depends=['kind']),
+                'invisible':~Bool(Eval('type')),
+                }, depends=['type']),
         'on_change_with_analytic_pending_accounts')
 
 
