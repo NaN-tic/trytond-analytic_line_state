@@ -2,40 +2,27 @@
 <!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
 this repository contains the full copyright notices and license terms. -->
 <tryton>
-    <data group="1">
-    <record model="ir.message" id="analytic_account_required_forbidden">
-        <field name="text">The Account "%(account)s" has configured the next
-            Analytic Roots as Required and Forbidden at once: %(roots)s.</field>
-    </record>
-    <record model="ir.message" id="analytic_account_required_optional">
-        <field name="text">The Account "%(account)s" has configured the next
-                  Analytic Roots as Required and Optional at once:
-                  %(roots)s.</field>
-    </record>
-    <record model="ir.message" id="analytic_account_forbidden_optional">
-        <field name="text">The Account "%(account)s" has configured the next
-            Analytic Roots as Forbidden and Optional at once:
-            %(roots)s.</field>
-    </record>
-    <record model="ir.message" id="missing_analytic_lines">
-        <field name="text">The Account Move "%(move)s" can\'t be posted because it
-                  doesn\'t have analytic lines for the next required
-                  analytic hierachies: %(roots)s.</field>
-    </record>
-    <record model="ir.message" id="invalid_analytic_to_post_move">
-        <field name="text">The Account Move "%(move)s" can\'t be posted because the
-              Analytic Lines of hierachy "%(root)s" related to Move
-              Line "%(line)s" are not valid.</field>
-    </record>
-    <record model="ir.message" id="account_analytic_not_configured">
-        <field name="text">The Move Line "%(line)s" is related to the Account
-                  "%(account)s" which is not configured for all Analytic
-                  hierarchies</field>
-    </record>
-    <record model="ir.message" id="move_line_account_analytic_forbidden">
-        <field name="text">The Analytic Line "%(line)s" is related to an Account
-            Move Line of Account "%(account)s" which has the
-            analytics forbidden for the Line\'s Analytic hierarchy.</field>
-    </record>
+    <data grouped="1">
+        <record model="ir.message" id="analytic_account_required_forbidden">
+            <field name="text">The Account "%(account)s" has configured the next Analytic Roots as Required and Forbidden at once: %(roots)s.</field>
+        </record>
+        <record model="ir.message" id="analytic_account_required_optional">
+            <field name="text">The Account "%(account)s" has configured the next Analytic Roots as Required and Optional at once: %(roots)s.</field>
+        </record>
+        <record model="ir.message" id="analytic_account_forbidden_optional">
+            <field name="text">The Account "%(account)s" has configured the next Analytic Roots as Forbidden and Optional at once: %(roots)s.</field>
+        </record>
+        <record model="ir.message" id="missing_analytic_lines">
+            <field name="text">The Account Move "%(move)s" can't be posted because it doesn't have analytic lines for the next required analytic hierachies: %(roots)s.</field>
+        </record>
+        <record model="ir.message" id="invalid_analytic_to_post_move">
+            <field name="text">The Account Move "%(move)s" can't be posted because the Analytic Lines of hierachy "%(root)s" related to Move Line "%(line)s" are not valid.</field>
+        </record>
+        <record model="ir.message" id="account_analytic_not_configured">
+            <field name="text">The Move Line "%(line)s" is related to the Account "%(account)s" which is not configured for all Analytic hierarchies</field>
+        </record>
+        <record model="ir.message" id="move_line_account_analytic_forbidden">
+            <field name="text">The Analytic Line "%(line)s" is related to an Account Move Line of Account "%(account)s" which has the analytics forbidden for the Line\'s Analytic hierarchy.</field>
+        </record>
     </data>
 </tryton>
