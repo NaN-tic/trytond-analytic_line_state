@@ -1,8 +1,6 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
-from trytond.model import fields
-from trytond.pool import PoolMeta, Pool
-from trytond.pyson import Eval, If
+from trytond.pool import PoolMeta
 
 __all__ = ['InvoiceLine']
 
@@ -25,7 +23,10 @@ class InvoiceLine(metaclass=PoolMeta):
             for line in lines:
                 analytic_lines = []
                 for entry in self.analytic_accounts:
+                    if not entry.account:
+                        continue
                     analytic_lines.extend(
                         entry.get_analytic_lines(line, date))
-                line.analytic_lines = analytic_lines
+                if analytic_lines:
+                    line.analytic_lines = analytic_lines
         return lines
