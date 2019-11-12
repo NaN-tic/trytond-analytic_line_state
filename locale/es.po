@@ -161,7 +161,7 @@ msgid ""
 " hierarchy."
 msgstr ""
 "La línea analítica \"%(line)s\" está relacionada con un apunte contable de "
-"la cuenta \"%(account) \" que tiene las analíticas prohibidas para la "
+"la cuenta \"%(account)s\" que tiene las analíticas prohibidas para la "
 "jerarquía analítica de la línea."
 
 msgctxt "model:ir.rule.group,name:rule_group_analytic_account_line"
