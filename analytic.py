@@ -150,7 +150,7 @@ class AnalyticAccountAccountRequired(ModelSQL):
 
     @classmethod
     def __register__(cls, module_name):
-        TableHandler = backend.get('TableHandler')
+        TableHandler = backend.TableHandler
         # Migration from 3.4: rename table
         old_table = 'analytic_account_account-required-account_account'
         new_table = 'analytic_acc_acc_required_acc_acc'
@@ -172,7 +172,7 @@ class AnalyticAccountAccountForbidden(ModelSQL):
 
     @classmethod
     def __register__(cls, module_name):
-        TableHandler = backend.get('TableHandler')
+        TableHandler = backend.TableHandler
         # Migration from 3.4: rename table
         old_table = 'analytic_account_account-forbidden-account_account'
         new_table = 'analytic_acc_acc_forbidden_acc_acc'
@@ -194,7 +194,7 @@ class AnalyticAccountAccountOptional(ModelSQL):
 
     @classmethod
     def __register__(cls, module_name):
-        TableHandler = backend.get('TableHandler')
+        TableHandler = backend.TableHandler
         # Migration from 3.4: rename table
         old_table = 'analytic_account_account-optional-account_account'
         new_table = 'analytic_acc_acc_optional_acc_acc'
@@ -251,7 +251,7 @@ class AnalyticLine(metaclass=PoolMeta):
     @classmethod
     def __register__(cls, module_name):
         pool = Pool()
-        TableHandler = backend.get('TableHandler')
+        TableHandler = backend.TableHandler
         cursor = Transaction().connection.cursor()
         sql_table = cls.__table__()
         account_sql_table = pool.get('account.account').__table__()
@@ -260,14 +260,14 @@ class AnalyticLine(metaclass=PoolMeta):
         copy_company = False
         if TableHandler.table_exist(cls._table):
             # if table doesn't exists => new db
-            table = TableHandler(cls, module_name)
+            table = backend.TableHandler(cls, module_name)
             copy_company = not table.column_exist('internal_company')
 
         super(AnalyticLine, cls).__register__(module_name)
 
-        table = TableHandler(cls, module_name)
+        table = backend.TableHandler(cls, module_name)
 
-        is_sqlite = backend.name() == 'sqlite'
+        is_sqlite = backend.name == 'sqlite'
         # Migration from DB without this module
         # table.not_null_action('move_line', action='remove') don't execute the
         # action if the field is not defined in this module
