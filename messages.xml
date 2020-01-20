@@ -13,7 +13,7 @@ this repository contains the full copyright notices and license terms. -->
             <field name="text">The Account "%(account)s" has configured the next Analytic Roots as Forbidden and Optional at once: %(roots)s.</field>
         </record>
         <record model="ir.message" id="missing_analytic_lines">
-            <field name="text">The Account Move "%(move)s" can't be posted because it doesn't have analytic lines for the next required analytic hierachies: %(roots)s.</field>
+            <field name="text">The Account Move "%(move)s" can't be posted because it doesn't have analytic lines for the next required analytic hierachies: %(roots)s.\nFor the account %(account)s.</field>
         </record>
         <record model="ir.message" id="invalid_analytic_to_post_move">
             <field name="text">The Account Move "%(move)s" can't be posted because the Analytic Lines of hierachy "%(root)s" related to Move Line "%(line)s" are not valid.</field>
