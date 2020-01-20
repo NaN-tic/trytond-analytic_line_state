@@ -135,6 +135,8 @@ class Move(metaclass=PoolMeta):
                     raise UserError(gettext(
                         'analytic_line_state.missing_analytic_lines',
                             move=move.rec_name,
+                            account="[%s] %s" % (line.account.code,
+                                line.account.name),
                             roots=', '.join(r.rec_name
                                 for r in required_roots),
                             ))
@@ -156,6 +158,8 @@ class Move(metaclass=PoolMeta):
                     raise UserError(gettext(
                         'analytic_line_state.missing_analytic_lines',
                             move=move.rec_name,
+                            account="[%s] %s" % (line.account.code,
+                                line.account.name),
                             roots=', '.join(r.rec_name
                                 for r in required_roots),
                             ))
