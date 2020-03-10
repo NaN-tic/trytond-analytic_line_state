@@ -121,12 +121,16 @@ class Account(metaclass=PoolMeta):
 class Move(metaclass=PoolMeta):
     __name__ = 'account.move'
 
-
     @classmethod
     @ModelView.button
     def post(cls, moves):
         super(Move, cls).post(moves)
         for move in moves:
+            origin = ''
+            origin_model = ''
+            if move.origin:
+                origin = move.origin.rec_name
+                origin_model = move.origin.__names__().get('model')
             if move.period.type == 'adjustment':
                 continue
             for line in move.lines:
@@ -139,8 +143,9 @@ class Move(metaclass=PoolMeta):
                                 line.account.name),
                             roots=', '.join(r.rec_name
                                 for r in required_roots),
+                            origin=origin,
+                            origin_model=origin_model,
                             ))
-
                 for analytic_line in line.analytic_lines:
                     if analytic_line.account.root in required_roots:
                         required_roots.remove(analytic_line.account.root)
@@ -162,6 +167,8 @@ class Move(metaclass=PoolMeta):
                                 line.account.name),
                             roots=', '.join(r.rec_name
                                 for r in required_roots),
+                            origin=origin,
+                            origin_model=origin_model,
                             ))
 
 
