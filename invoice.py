@@ -30,3 +30,11 @@ class InvoiceLine(metaclass=PoolMeta):
                 if analytic_lines:
                     line.analytic_lines = analytic_lines
         return lines
+
+    @classmethod
+    def view_attributes(cls):
+        return super(InvoiceLine, cls).view_attributes() + [
+            ('/form/notebook/page[@id="analytic_accounts"]', 'states', {
+                    'invisible': True,
+                    }),
+            ]
