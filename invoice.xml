@@ -2,7 +2,7 @@
 <!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
 this repository contains the full copyright notices and license terms. -->
 <tryton>
-    <data>
+    <data depends="account_invoice">
         <record model="ir.ui.view" id="invoice_line_view_form">
             <field name="model">account.invoice.line</field>
             <field name="inherit" ref="account_invoice.invoice_line_view_form"/>
