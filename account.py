@@ -2,7 +2,7 @@
 # copyright notices and license terms.
 from itertools import chain
 
-from trytond.model import ModelView, fields, dualmethod
+from trytond.model import Model, ModelView, fields, dualmethod
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, Bool
 from trytond.i18n import gettext
@@ -128,7 +128,10 @@ class Move(metaclass=PoolMeta):
         for move in moves:
             origin = ''
             origin_model = ''
-            if move.origin:
+            # Ensure that "move.origin" is an instance because if a reference
+            # field is assigned a model name but not an id "move.origin" will
+            # return an str
+            if move.origin and isinstance(move.origin, Model):
                 origin = move.origin.rec_name
                 origin_model = move.origin.__names__().get('model')
             if move.period.type == 'adjustment':
