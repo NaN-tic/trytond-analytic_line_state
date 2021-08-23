@@ -247,7 +247,6 @@ class AnalyticLine(metaclass=PoolMeta):
             }
         cls.move_line.depends += ['internal_company', 'state']
 
-
     @classmethod
     def __register__(cls, module_name):
         pool = Pool()
@@ -293,17 +292,10 @@ class AnalyticLine(metaclass=PoolMeta):
         return Transaction().context.get('company')
 
     @fields.depends('internal_company')
-    def on_change_with_currency_digits(self, name=None):
-        digits = super(AnalyticLine, self).on_change_with_currency_digits(
-            name=name)
-        if self.internal_company:
-            digits = self.internal_company.currency.digits
-        return digits
-
-    @fields.depends('internal_company')
     def on_change_with_company(self, name=None):
         if self.internal_company:
             return self.internal_company.id
+        return super(AnalyticLine, self).on_change_with_company(name=name)
 
     @classmethod
     def search_company(cls, name, clause):
