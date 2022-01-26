@@ -10,6 +10,10 @@ class InvoiceLine(metaclass=PoolMeta):
 
     def get_move_lines(self):
         lines = super(InvoiceLine, self).get_move_lines()
+
+        if not hasattr(self, 'analytic_accounts'):
+            return lines
+
         if self.invoice and self.invoice.type:
             type_ = self.invoice.type
         else:
