@@ -30,7 +30,7 @@
         </record>
         <record model="ir.rule" id="rule_analytic_account_line1">
             <field name="domain"
-                eval="[('company', '=', Eval('user', {}).get('company', None))]"
+                eval="[('internal_company', 'in', Eval('companies', []))]"
                 pyson="1"/>
             <field name="rule_group" ref="rule_group_analytic_account_line"/>
         </record>
