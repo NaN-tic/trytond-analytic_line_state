@@ -25,5 +25,8 @@ this repository contains the full copyright notices and license terms. -->
         <record model="ir.message" id="move_line_account_analytic_forbidden">
             <field name="text">Analytic Line "%(line)s" is related to an Account Move Line of Account "%(account)s" which has the analytics forbidden for the Line\'s Analytic hierarchy.</field>
         </record>
+        <record model="ir.message" id="msg_missing_root_on_asset">
+            <field name="text">The next analytic roots [%(roots)s] are required in account %(account)s and are missing in the asset %(asset)s.</field>
+        </record>
     </data>
 </tryton>
