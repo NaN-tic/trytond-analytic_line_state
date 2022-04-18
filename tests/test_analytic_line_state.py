@@ -1,13 +1,15 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
 import unittest
+import doctest
 import datetime
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 
-import trytond.tests.test_tryton
 from trytond.exceptions import UserError
-from trytond.tests.test_tryton import ModuleTestCase, with_transaction
+from trytond.tests.test_tryton import (ModuleTestCase, with_transaction,
+    doctest_teardown, doctest_checker)
+from trytond.tests.test_tryton import suite as test_suite
 from trytond.transaction import Transaction
 from trytond.pool import Pool
 
@@ -46,17 +48,17 @@ class TestCase(ModuleTestCase):
                         'type': 'view',
                         'childs': [
                             ('create', [{
-                                        'name': 'Project 1',
-                                        'code': 'P1',
-                                        'root': root.id,
-                                        'type': 'normal',
-                                        }, {
-                                        'name': 'Project 2',
-                                        'code': 'P2',
-                                        'root': root.id,
-                                        'type': 'normal',
-                                        },
-                                    ]),
+                                    'name': 'Project 1',
+                                    'code': 'P1',
+                                    'root': root.id,
+                                    'type': 'normal',
+                                    }, {
+                                    'name': 'Project 2',
+                                    'code': 'P2',
+                                    'root': root.id,
+                                    'type': 'normal',
+                                    },
+                                ]),
                             ],
                         },
                     ])
@@ -68,7 +70,7 @@ class TestCase(ModuleTestCase):
         Account = pool.get('account.account')
         AnalyticAccount = pool.get('analytic_account.account')
         revenue_expense = Account.search([
-                'OR',('type.expense', '=', True),
+                'OR', ('type.expense', '=', True),
                 ('type.revenue', '=', True)
                 ])
         receivable_payable = Account.search([
@@ -76,7 +78,7 @@ class TestCase(ModuleTestCase):
                 ('type.receivable', '=', True)
                 ])
         other = Account.search([
-                ('type','!=', None),
+                ('type', '!=', None),
                 ('type.revenue', '=', False),
                 ('type.expense', '=', False),
                 ('type.payable', '=', False),
@@ -331,8 +333,8 @@ class TestCase(ModuleTestCase):
 
             # Create some analytic lines on draft move and check how their
             # state change
-            expense_move_line = [l for l in draft_move.lines
-                if l.account.type.expense][0]
+            expense_move_line = [x for x in draft_move.lines
+                if x.account.type.expense][0]
             line1, = AnalyticLine.create([{
                         'credit': Decimal(0),
                         'debit': Decimal(600),
@@ -443,6 +445,11 @@ class TestCase(ModuleTestCase):
 
 
 def suite():
-    suite = trytond.tests.test_tryton.suite()
+    suite = test_suite()
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestCase))
+    suite.addTests(doctest.DocFileSuite(
+            'scenario_account_asset_update_value.rst',
+            tearDown=doctest_teardown, encoding='utf-8',
+            checker=doctest_checker,
+            optionflags=doctest.REPORT_ONLY_FIRST_FAILURE))
     return suite
