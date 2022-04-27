@@ -445,12 +445,4 @@ class TestCase(CompanyTestMixin, ModuleTestCase):
                 Move.post(move)
 
 
-def suite():
-    suite = test_suite()
-    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestCase))
-    suite.addTests(doctest.DocFileSuite(
-            'scenario_account_asset_update_value.rst',
-            tearDown=doctest_teardown, encoding='utf-8',
-            checker=doctest_checker,
-            optionflags=doctest.REPORT_ONLY_FIRST_FAILURE))
-    return suite
+del ModuleTestCase
