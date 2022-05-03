@@ -232,7 +232,7 @@ class AnalyticLine(metaclass=PoolMeta):
             else:
                 field.states['readonly'] = _STATES['readonly']
             if 'state' not in field.depends:
-                field.depends.append('state')
+                field.depends.add('state')
 
         company_domain = ('account.company', '=', Eval('internal_company'))
         if not cls.move_line.domain:
