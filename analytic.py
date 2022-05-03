@@ -245,7 +245,7 @@ class AnalyticLine(metaclass=PoolMeta):
             'required': Eval('state') != 'draft',
             'readonly': Eval('state') != 'draft',
             }
-        cls.move_line.depends += ['internal_company', 'state']
+        cls.move_line.depends |= {'internal_company', 'state'}
 
     @classmethod
     def __register__(cls, module_name):
