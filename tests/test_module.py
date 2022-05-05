@@ -1,15 +1,11 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
-import unittest
-import doctest
 import datetime
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 
 from trytond.exceptions import UserError
-from trytond.tests.test_tryton import (ModuleTestCase, with_transaction,
-    doctest_teardown, doctest_checker)
-from trytond.tests.test_tryton import suite as test_suite
+from trytond.tests.test_tryton import ModuleTestCase, with_transaction
 from trytond.transaction import Transaction
 from trytond.pool import Pool
 
@@ -23,6 +19,7 @@ class TestCase(CompanyTestMixin, ModuleTestCase):
     Test module.
     '''
     module = 'analytic_line_state'
+    extras = ['account_invoice', 'analytic_invoice', 'account_asset', 'analytic_account_move']
 
     @with_transaction()
     def test0010analytic_account_chart(self):
