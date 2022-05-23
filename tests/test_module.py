@@ -13,6 +13,8 @@ from trytond.modules.company.tests import (CompanyTestMixin, create_company,
     set_company)
 from trytond.modules.account.tests import create_chart, get_fiscalyear
 
+from trytond.modules.account_invoice.tests import set_invoice_sequences
+
 
 class TestCase(CompanyTestMixin, ModuleTestCase):
     '''
@@ -128,6 +130,7 @@ class TestCase(CompanyTestMixin, ModuleTestCase):
             # Create Chart and Fiscalyear
             create_chart(company)
             fiscalyear = get_fiscalyear(company)
+            set_invoice_sequences(fiscalyear)
             fiscalyear.save()
             fiscalyear.create_period([fiscalyear])
             period = fiscalyear.periods[0]
@@ -251,6 +254,7 @@ class TestCase(CompanyTestMixin, ModuleTestCase):
             # Create Chart and Fiscalyear
             create_chart(company)
             fiscalyear = get_fiscalyear(company)
+            set_invoice_sequences(fiscalyear)
             fiscalyear.save()
             fiscalyear.create_period([fiscalyear])
             period = fiscalyear.periods[0]
@@ -385,6 +389,7 @@ class TestCase(CompanyTestMixin, ModuleTestCase):
             # Create Chart and Fiscalyear
             create_chart(company)
             fiscalyear = get_fiscalyear(company)
+            set_invoice_sequences(fiscalyear)
             fiscalyear.save()
             fiscalyear.create_period([fiscalyear])
             period = fiscalyear.periods[0]
