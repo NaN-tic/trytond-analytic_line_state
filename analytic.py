@@ -394,6 +394,7 @@ class AnalyticLine(metaclass=PoolMeta):
 
 
 class OpenChartAccountStart(ModelView):
+    'Open Chart Account Start'
     __name__ = 'analytic_account.open_chart.start'
     posted = fields.Boolean('Posted Moves',
         help='Show posted moves only')
