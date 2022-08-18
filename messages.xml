@@ -14,7 +14,7 @@ this repository contains the full copyright notices and license terms. -->
         </record>
         <record model="ir.message" id="missing_analytic_lines">
             <field name="text">Account Move "%(move)s" with origin %(origin_model)s "%(origin)s" can't be posted because it doesn't have analytic lines for the next required analytic hierachies: %(roots)s.
-            For the account %(account)s.</field>
+For the account %(account)s.</field>
         </record>
         <record model="ir.message" id="invalid_analytic_to_post_move">
             <field name="text">Account Move "%(move)s" can't be posted because the Analytic Lines of hierachy "%(root)s" related to Move Line "%(line)s" are not valid.</field>
