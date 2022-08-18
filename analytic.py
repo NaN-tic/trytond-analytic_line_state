@@ -15,7 +15,7 @@ from trytond.exceptions import UserError
 
 __all__ = ['AnalyticAccount', 'AnalyticAccountAccountRequired',
     'AnalyticAccountAccountForbidden', 'AnalyticAccountAccountOptional',
-    'AnalyticLine', 'OpenChartAccountStart', 'OpenChartAccount']
+    'AnalyticLine']
 
 
 class AnalyticAccount(metaclass=PoolMeta):
@@ -391,26 +391,3 @@ class AnalyticLine(metaclass=PoolMeta):
         move_lines = list(set([l.move_line for l in lines if l.move_line]))
         super(AnalyticLine, cls).delete(lines)
         MoveLine.validate_analytic_lines(move_lines)
-
-
-class OpenChartAccountStart(ModelView):
-    'Open Chart Account Start'
-    __name__ = 'analytic_account.open_chart.start'
-    posted = fields.Boolean('Posted Moves',
-        help='Show posted moves only')
-
-
-class OpenChartAccount(Wizard):
-    __name__ = 'analytic_account.open_chart'
-
-    def do_open_(self, action):
-        action, context = super(OpenChartAccount, self).do_open_(action)
-        pyson_context = PYSONDecoder().decode(action['pyson_context'])
-        pyson_context.update({
-                'posted': self.start.posted,
-                'date': self.start.end_date,
-                })
-        action['pyson_context'] = PYSONEncoder().encode(pyson_context)
-        return action, context
-
-# vim:ft=python.tryton:

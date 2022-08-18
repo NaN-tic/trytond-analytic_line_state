@@ -35,13 +35,6 @@
             <field name="rule_group" ref="rule_group_analytic_account_line"/>
         </record>
 
-        <!-- analytic_account.open_chart.start -->
-        <record model="ir.ui.view" id="open_chart_start_view_form">
-            <field name="model">analytic_account.open_chart.start</field>
-            <field name="inherit" ref="analytic_account.open_chart_start_view_form"/>
-            <field name="name">open_chart_start_form</field>
-        </record>
-
         <!-- menus -->
         <menuitem parent="account.menu_entries"
             action="analytic_account.act_line_form" id="menu_line_list"
