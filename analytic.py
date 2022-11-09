@@ -143,10 +143,10 @@ class AnalyticAccountAccountRequired(ModelSQL):
     __name__ = 'analytic_account.account-required-account.account'
     _table = 'analytic_acc_acc_required_acc_acc'
     analytic_account = fields.Many2One('analytic_account.account',
-        'Analytic Account', ondelete='CASCADE', required=True, select=True,
+        'Analytic Account', ondelete='CASCADE', required=True,
         domain=[('type', '=', 'root')])
     account = fields.Many2One('account.account', 'Account',
-        ondelete='CASCADE', required=True, select=True)
+        ondelete='CASCADE', required=True)
 
     @classmethod
     def __register__(cls, module_name):
@@ -165,10 +165,10 @@ class AnalyticAccountAccountForbidden(ModelSQL):
     __name__ = 'analytic_account.account-forbidden-account.account'
     _table = 'analytic_acc_acc_forbidden_acc_acc'
     analytic_account = fields.Many2One('analytic_account.account',
-        'Analytic Account', ondelete='CASCADE', required=True, select=True,
+        'Analytic Account', ondelete='CASCADE', required=True,
         domain=[('type', '=', 'root')])
     account = fields.Many2One('account.account', 'Account',
-        ondelete='CASCADE', required=True, select=True)
+        ondelete='CASCADE', required=True)
 
     @classmethod
     def __register__(cls, module_name):
@@ -187,10 +187,10 @@ class AnalyticAccountAccountOptional(ModelSQL):
     __name__ = 'analytic_account.account-optional-account.account'
     _table = 'analytic_acc_acc_optional_acc_acc'
     analytic_account = fields.Many2One('analytic_account.account',
-        'Analytic Account', ondelete='CASCADE', required=True, select=True,
+        'Analytic Account', ondelete='CASCADE', required=True,
         domain=[('type', '=', 'root')])
     account = fields.Many2One('account.account', 'Account',
-        ondelete='CASCADE', required=True, select=True)
+        ondelete='CASCADE', required=True)
 
     @classmethod
     def __register__(cls, module_name):
@@ -218,7 +218,7 @@ class AnalyticLine(metaclass=PoolMeta):
     state = fields.Selection([
             ('draft', 'Draft'),
             ('valid', 'Valid'),
-            ], 'State', required=True, readonly=True, select=True)
+            ], 'State', required=True, readonly=True)
 
     @classmethod
     def __setup__(cls):
