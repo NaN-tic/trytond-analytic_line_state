@@ -17,6 +17,7 @@ class Configuration(metaclass=PoolMeta):
         help='If marked it will prevent to post a move to an account that '
         'has Pending Analytic accounts.')
 
+
 class Account(metaclass=PoolMeta):
     __name__ = 'account.account'
 

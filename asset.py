@@ -1,12 +1,12 @@
 # The COPYRIGHT file at the top level of this repository contains the full
 # copyright notices and license terms.
 from trytond.pool import Pool, PoolMeta
+from trytond.transaction import Transaction
 from trytond.exceptions import UserError
 from trytond.i18n import gettext
 
 
 class UpdateAsset(metaclass=PoolMeta):
-    'Update Asset'
     __name__ = 'account.asset.update'
 
     def get_move_lines(self, asset):
@@ -16,10 +16,13 @@ class UpdateAsset(metaclass=PoolMeta):
         MoveLine = pool.get('account.move.line')
 
         lines = super().get_move_lines(asset)
-
         if not lines:
             return lines
 
+        # set analytic lines because is required when post move
+        self.set_analytic_lines(lines, asset)
+
+        # analytic_account_move extras depend
         analytic_account_move = (True if hasattr(MoveLine, 'analytic_accounts')
             else False)
         if asset.analytic_accounts and analytic_account_move:
@@ -46,3 +49,17 @@ class UpdateAsset(metaclass=PoolMeta):
                     entries.append(entry)
                 line.analytic_accounts = entries
         return lines
+
+    def set_analytic_lines(self, lines, asset):
+        "Fill analytic lines on lines with given account"
+        account = asset.product.account_expense_used
+        if asset.analytic_accounts:
+            with Transaction().set_context(date=self.show_move.date):
+                for line in lines:
+                    if line.account != account:
+                        continue
+                    analytic_lines = []
+                    for entry in asset.analytic_accounts:
+                        analytic_lines.extend(
+                            entry.get_analytic_lines(line, self.show_move.date))
+                    line.analytic_lines = analytic_lines
