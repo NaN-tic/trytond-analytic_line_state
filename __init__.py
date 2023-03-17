@@ -3,7 +3,6 @@
 from trytond.pool import Pool
 from . import account
 from . import analytic
-from . import asset
 from . import invoice
 
 def register():
@@ -23,6 +22,5 @@ def register():
         depends=['account_invoice'],
         module='analytic_line_state', type_='model')
     Pool.register(
-        asset.UpdateAsset,
-        depends=['account_asset'],
+        analytic.OpenChartAccount,
         module='analytic_line_state', type_='wizard')
