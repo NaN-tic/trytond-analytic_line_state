@@ -21,7 +21,7 @@ class TestCase(CompanyTestMixin, ModuleTestCase):
     Test module.
     '''
     module = 'analytic_line_state'
-    extras = ['account_invoice', 'analytic_invoice', 'account_asset', 'analytic_account_move']
+    extras = ['account_invoice', 'analytic_invoice', 'analytic_account_move']
 
     @with_transaction()
     def test0010analytic_account_chart(self):
