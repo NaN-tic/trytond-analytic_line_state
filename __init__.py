@@ -21,6 +21,3 @@ def register():
         invoice.InvoiceLine,
         depends=['account_invoice'],
         module='analytic_line_state', type_='model')
-    Pool.register(
-        analytic.OpenChartAccount,
-        module='analytic_line_state', type_='wizard')
