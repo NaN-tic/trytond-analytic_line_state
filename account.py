@@ -183,7 +183,9 @@ class MoveLine(metaclass=PoolMeta):
         '''
         Check if the lines can be modified
         '''
-        if modified_fields is None:
+
+        if (modified_fields is not None
+                and modified_fields <= cls._check_modify_exclude):
             return
 
         super(MoveLine, cls).check_modify(lines, modified_fields)
