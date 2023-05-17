@@ -179,16 +179,6 @@ class MoveLine(metaclass=PoolMeta):
     __name__ = 'account.move.line'
 
     @classmethod
-    def check_modify(cls, lines, modified_fields=None):
-        '''
-        Check if the lines can be modified
-        '''
-        if modified_fields is None:
-            return
-
-        super(MoveLine, cls).check_modify(lines, modified_fields)
-
-    @classmethod
     def validate(cls, lines):
         super(MoveLine, cls).validate(lines)
         for line in lines:
