@@ -7,6 +7,7 @@ from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, Bool
 from trytond.i18n import gettext
 from trytond.exceptions import UserError
+from trytond.model.exceptions import AccessError
 
 __all__ = ['Configuration', 'Account', 'Move', 'MoveLine']
 
@@ -179,6 +180,16 @@ class MoveLine(metaclass=PoolMeta):
     __name__ = 'account.move.line'
 
     @classmethod
+    def check_modify(cls, lines, modified_fields=None):
+        '''
+        Check if the lines can be modified
+        '''
+        if modified_fields is None:
+            return
+
+        super(MoveLine, cls).check_modify(lines, modified_fields)
+
+    @classmethod
     def validate(cls, lines):
         super(MoveLine, cls).validate(lines)
         for line in lines:
@@ -245,6 +256,14 @@ class MoveLine(metaclass=PoolMeta):
         AnalyticLine.write(todraft_lines, {
                 'state': 'draft',
                 })
+
+        for line in lines:
+            if line.move.state == 'posted':
+                raise AccessError(gettext(
+                    'account.msg_modify_line_posted_move',
+                        line=line.rec_name,
+                        move=line.move.rec_name,
+                        ))
         super(MoveLine, cls).delete(lines)
 
     @dualmethod
