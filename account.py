@@ -8,6 +8,7 @@ from trytond.pyson import Eval, Bool
 from trytond.i18n import gettext
 from trytond.exceptions import UserError
 from trytond.model.exceptions import AccessError
+from trytond.transaction import Transaction
 
 __all__ = ['Configuration', 'Account', 'Move', 'MoveLine']
 
@@ -257,13 +258,16 @@ class MoveLine(metaclass=PoolMeta):
                 'state': 'draft',
                 })
 
-        for line in lines:
-            if line.move.state == 'posted':
-                raise AccessError(gettext(
-                    'account.msg_modify_line_posted_move',
-                        line=line.rec_name,
-                        move=line.move.rec_name,
-                        ))
+        from_statement = Transaction().context.get(
+            'from_account_bank_statement_line', False)
+        if not from_statement:
+            for line in lines:
+                if line.move.state == 'posted':
+                    raise AccessError(gettext(
+                        'account.msg_modify_line_posted_move',
+                            line=line.rec_name,
+                            move=line.move.rec_name,
+                            ))
         super(MoveLine, cls).delete(lines)
 
     @dualmethod
