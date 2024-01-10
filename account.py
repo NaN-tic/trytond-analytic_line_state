@@ -59,7 +59,7 @@ class Account(metaclass=PoolMeta):
         fields.Many2Many('analytic_account.account', None, None,
             'Pending Accounts', states={
                 'invisible':~Bool(Eval('type')),
-                }, depends=['type']),
+                }),
         'on_change_with_analytic_pending_accounts')
 
 

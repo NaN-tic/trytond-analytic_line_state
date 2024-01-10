@@ -56,8 +56,7 @@ class AnalyticAccount(metaclass=PoolMeta):
     analytic_pending_accounts = fields.Function(fields.Many2Many(
             'account.account', None, None, 'Pending Accounts', states={
                 'invisible': Eval('type') != 'root',
-                },
-            depends=['type']),
+                }),
         'on_change_with_analytic_pending_accounts')
 
     @fields.depends('analytic_required', 'analytic_forbidden',
@@ -213,7 +212,7 @@ class AnalyticLine(metaclass=PoolMeta):
     __name__ = 'analytic_account.line'
 
     internal_company = fields.Many2One('company.company', 'Company',
-        required=True, states=_STATES, depends=_DEPENDS)
+        required=True, states=_STATES)
     state = fields.Selection([
             ('draft', 'Draft'),
             ('valid', 'Valid'),
