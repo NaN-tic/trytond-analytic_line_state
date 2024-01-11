@@ -29,8 +29,7 @@ class AnalyticAccount(metaclass=PoolMeta):
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
             'invisible': Eval('type') != 'root',
-            },
-        depends=['company', 'analytic_forbidden', 'analytic_optional', 'type'])
+            })
     analytic_forbidden = fields.Many2Many(
         'analytic_account.account-forbidden-account.account',
         'analytic_account', 'account', 'Analytic Forbidden', domain=[
@@ -40,8 +39,7 @@ class AnalyticAccount(metaclass=PoolMeta):
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
             'invisible': Eval('type') != 'root',
-            },
-        depends=['company', 'analytic_required', 'analytic_optional', 'type'])
+            })
     analytic_optional = fields.Many2Many(
         'analytic_account.account-optional-account.account',
         'analytic_account', 'account', 'Analytic Optional', domain=[
@@ -51,8 +49,7 @@ class AnalyticAccount(metaclass=PoolMeta):
             ('id', 'not in', Eval('analytic_forbidden')),
             ], states={
             'invisible': Eval('type') != 'root',
-            },
-        depends=['company', 'analytic_required', 'analytic_forbidden', 'type'])
+            })
     analytic_pending_accounts = fields.Function(fields.Many2Many(
             'account.account', None, None, 'Pending Accounts', states={
                 'invisible': Eval('type') != 'root',
