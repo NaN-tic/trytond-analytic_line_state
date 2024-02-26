@@ -147,17 +147,6 @@ class AnalyticAccountAccountRequired(ModelSQL):
     account = fields.Many2One('account.account', 'Account',
         ondelete='CASCADE', required=True)
 
-    @classmethod
-    def __register__(cls, module_name):
-        TableHandler = backend.TableHandler
-        # Migration from 3.4: rename table
-        old_table = 'analytic_account_account-required-account_account'
-        new_table = 'analytic_acc_acc_required_acc_acc'
-        if TableHandler.table_exist(old_table):
-            TableHandler.table_rename(old_table, new_table)
-        super(AnalyticAccountAccountRequired, cls).__register__(
-            module_name)
-
 
 class AnalyticAccountAccountForbidden(ModelSQL):
     'Analytic Account - Account - Forbidden'
@@ -169,17 +158,6 @@ class AnalyticAccountAccountForbidden(ModelSQL):
     account = fields.Many2One('account.account', 'Account',
         ondelete='CASCADE', required=True)
 
-    @classmethod
-    def __register__(cls, module_name):
-        TableHandler = backend.TableHandler
-        # Migration from 3.4: rename table
-        old_table = 'analytic_account_account-forbidden-account_account'
-        new_table = 'analytic_acc_acc_forbidden_acc_acc'
-        if TableHandler.table_exist(old_table):
-            TableHandler.table_rename(old_table, new_table)
-        super(AnalyticAccountAccountForbidden, cls).__register__(
-            module_name)
-
 
 class AnalyticAccountAccountOptional(ModelSQL):
     'Analytic Account - Account - Optional'
@@ -190,17 +168,6 @@ class AnalyticAccountAccountOptional(ModelSQL):
         domain=[('type', '=', 'root')])
     account = fields.Many2One('account.account', 'Account',
         ondelete='CASCADE', required=True)
-
-    @classmethod
-    def __register__(cls, module_name):
-        TableHandler = backend.TableHandler
-        # Migration from 3.4: rename table
-        old_table = 'analytic_account_account-optional-account_account'
-        new_table = 'analytic_acc_acc_optional_acc_acc'
-        if TableHandler.table_exist(old_table):
-            TableHandler.table_rename(old_table, new_table)
-        super(AnalyticAccountAccountOptional, cls).__register__(
-            module_name)
 
 
 _STATES = {
@@ -245,46 +212,6 @@ class AnalyticLine(metaclass=PoolMeta):
             'readonly': Eval('state') != 'draft',
             }
         cls.move_line.depends |= {'internal_company', 'state'}
-
-    @classmethod
-    def __register__(cls, module_name):
-        pool = Pool()
-        TableHandler = backend.TableHandler
-        cursor = Transaction().connection.cursor()
-        sql_table = cls.__table__()
-        account_sql_table = pool.get('account.account').__table__()
-        move_line_sql_table = pool.get('account.move.line').__table__()
-
-        copy_company = False
-        if TableHandler.table_exist(cls._table):
-            # if table doesn't exists => new db
-            table = backend.TableHandler(cls, module_name)
-            copy_company = not table.column_exist('internal_company')
-
-        super(AnalyticLine, cls).__register__(module_name)
-
-        table = backend.TableHandler(cls, module_name)
-
-        is_sqlite = backend.name == 'sqlite'
-        # Migration from DB without this module
-        # table.not_null_action('move_line', action='remove') don't execute the
-        # action if the field is not defined in this module
-        if not is_sqlite:
-            cursor.execute('ALTER TABLE %s ALTER COLUMN "move_line" '
-                'DROP NOT NULL' % (sql_table,))
-            table._update_definitions()
-
-        cursor.execute(*sql_table.update(columns=[sql_table.state],
-                values=['posted'],
-                where=((sql_table.state == Null) &
-                    (sql_table.move_line == Null))))
-        if copy_company and not is_sqlite:
-            join = move_line_sql_table.join(account_sql_table)
-            join.condition = move_line_sql_table.account == join.right.id
-            query = sql_table.update(columns=[sql_table.internal_company],
-                    values=[join.right.company], from_=[join],
-                    where=sql_table.move_line == join.left.id)
-            cursor.execute(*query)
 
     @staticmethod
     def default_internal_company():
