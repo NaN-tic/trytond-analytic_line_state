@@ -173,6 +173,20 @@ class Move(metaclass=PoolMeta):
                             origin_model=origin_model,
                             ))
 
+    def _set_analytic_account_from_rule(move):
+        pool = Pool()
+        MoveLine = pool.get('account.move.line')
+
+        must_have_analytic = False
+        for line in move.lines:
+            if line._must_have_analytic():
+                must_have_analytic = True
+                break
+        if must_have_analytic:
+            move.save()
+            lines = move.lines
+            MoveLine.apply_rule(lines)
+
 
 class MoveLine(metaclass=PoolMeta):
     __name__ = 'account.move.line'
@@ -278,3 +292,40 @@ class MoveLine(metaclass=PoolMeta):
         # XXX: as required move_line is dropped on analytic line,
         # this can be called with None value
         super(MoveLine, cls).set_analytic_state([x for x in lines if x])
+
+    def _must_have_analytic(line):
+        # this code is a copy from @property must_have_analytic() method from analytic_account module
+        pool = Pool()
+        FiscalYear = pool.get('account.fiscalyear')
+
+        if line.account.type:
+            return line.account.type.statement == 'income' and not (
+                # ignore balance move of non-deferral account
+                hasattr(line, 'journal') and line.journal.type == 'situation'
+                and hasattr(line, 'period') and line.period.type == 'adjustment'
+                and hasattr(line.move, 'origin') and isinstance(line.move.origin, FiscalYear))
+
+    @classmethod
+    def _get_writeoff_move(
+            cls, reconcile_account, reconcile_party, amount, currency,
+            writeoff, date=None, description=None):
+        move = super()._get_writeoff_move(reconcile_account, reconcile_party,
+            amount, currency, writeoff, date, description)
+
+        # Set analytic accounts from analytic rules.
+        # When create() move.line, called set_analytic_state()
+        # that set analytic lines
+        move._set_analytic_account_from_rule()
+
+        return move
+
+    @classmethod
+    def _get_exchange_move(cls, account, party, amount, date=None):
+        move = super()._get_exchange_move(account, party, amount, date)
+
+        # Set analytic accounts from analytic rules.
+        # When create() move.line, called set_analytic_state()
+        # that set analytic lines
+        move._set_analytic_account_from_rule()
+
+        return move
