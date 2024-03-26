@@ -293,11 +293,20 @@ class MoveLine(metaclass=PoolMeta):
         # this can be called with None value
         super(MoveLine, cls).set_analytic_state([x for x in lines if x])
 
+    @property
+    def must_have_analytic(self):
+        have_analytic = super().must_have_analytic
+        if self.account.analytic_required:
+            return True
+        return have_analytic
+
     def _must_have_analytic(line):
         # this code is a copy from @property must_have_analytic() method from analytic_account module
         pool = Pool()
         FiscalYear = pool.get('account.fiscalyear')
 
+        if line.account.analytic_required:
+            return True
         if line.account.type:
             return line.account.type.statement == 'income' and not (
                 # ignore balance move of non-deferral account
