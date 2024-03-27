@@ -218,9 +218,17 @@ class TestCase(CompanyTestMixin, ModuleTestCase):
                             'debit': Decimal(30000),
                             }]),
                 ]
-            missing_analytic_move = Move.create([missing_analytic_vals])
+            missing_analytic_moves = Move.create([missing_analytic_vals])
+
+            # check @property must_have_analytic is equal to account analytic_required
+            for move in missing_analytic_moves:
+                for line in move.lines:
+                    self.assertEqual(line.must_have_analytic,
+                        len(line.account.analytic_required) > 0)
+                    self.assertEqual(line._must_have_analytic(), line.must_have_analytic)
+
             with self.assertRaises(UserError):
-                Move.post(missing_analytic_move)
+                Move.post(missing_analytic_moves)
 
             # Can not create move with analytic in analytic forbidden account
             unexpected_analytic_vals = valid_move_vals.copy()
@@ -329,6 +337,13 @@ class TestCase(CompanyTestMixin, ModuleTestCase):
             # Check the Analytic lines of the valid move are in 'valid' state
             self.assertTrue(all(al.state == 'valid'
                     for ml in valid_move.lines for al in ml.analytic_lines))
+
+            # check @property must_have_analytic is equal to account type statement
+            for line in valid_move.lines:
+                self.assertEqual(line.must_have_analytic,
+                    line.account.type.statement == 'income')
+                self.assertEqual(line._must_have_analytic(), line.must_have_analytic)
+
             # Can post the move
             Move.post([valid_move])
             self.assertEqual(valid_move.state, 'posted')
