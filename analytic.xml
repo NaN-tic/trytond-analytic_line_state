@@ -25,7 +25,7 @@
 
         <record model="ir.rule.group" id="rule_group_analytic_account_line">
             <field name="name">Analytic Account Line</field>
-            <field name="model" search="[('model', '=', 'analytic_account.line')]"/>
+            <field name="model">analytic_account.line</field>
             <field name="global_p" eval="True"/>
         </record>
         <record model="ir.rule" id="rule_analytic_account_line1">
