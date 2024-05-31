@@ -157,7 +157,7 @@ Reconcile Lines with write-off::
     >>> writeoff_line2, = [l for l in writeoff_line1.move.lines
     ...     if l != writeoff_line1]
     >>> assertEqual(writeoff_line2.account, expense)
-    >>> writeoff_line2.debit
-    Decimal('107')
+    >>> writeoff_line2.debit == Decimal('107')
+    True
     >>> assertEqual(len(writeoff_line2.analytic_lines), 1)
     >>> assertEqual(writeoff_line2.analytic_lines[0].account, analytic_account)
