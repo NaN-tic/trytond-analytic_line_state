@@ -10,8 +10,6 @@ from trytond.exceptions import UserError
 from trytond.model.exceptions import AccessError
 from trytond.transaction import Transaction
 
-__all__ = ['Configuration', 'Account', 'Move', 'MoveLine']
-
 
 class Configuration(metaclass=PoolMeta):
     __name__ = 'account.configuration'
@@ -120,7 +118,7 @@ class Account(metaclass=PoolMeta):
 class Move(metaclass=PoolMeta):
     __name__ = 'account.move'
 
-    @classmethod
+    @dualmethod
     @ModelView.button
     def post(cls, moves):
         super(Move, cls).post(moves)
