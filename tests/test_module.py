@@ -144,17 +144,21 @@ class TestCase(CompanyTestMixin, ModuleTestCase):
                     ('code', '=', 'EXP'),
                     ])
             revenue, = Account.search([
-                    ('type.revenue', '=', True)
-                    ])
+                    ('type.revenue', '=', True),
+                    ('closed', '=', False),
+                    ], limit=1)
             receivable, = Account.search([
-                    ('type.receivable', '=', True)
-                    ])
+                    ('type.receivable', '=', True),
+                    ('closed', '=', False),
+                    ], limit=1)
             expense, = Account.search([
-                    ('type.expense', '=', True)
-                    ])
+                    ('type.expense', '=', True),
+                    ('closed', '=', False),
+                    ], limit=1)
             payable, = Account.search([
-                    ('type.payable', '=', True)
-                    ])
+                    ('type.payable', '=', True),
+                    ('closed', '=', False),
+                    ], limit=1)
             project1, = AnalyticAccount.search([
                     ('code', '=', 'P1'),
                     ])
@@ -275,16 +279,20 @@ class TestCase(CompanyTestMixin, ModuleTestCase):
                     ])
             revenue, = Account.search([
                     ('type.expense', '=', True),
-                    ])
+                    ('closed', '=', False),
+                    ], limit=1)
             receivable, = Account.search([
                     ('type.receivable', '=', True),
-                    ])
+                    ('closed', '=', False),
+                    ], limit=1)
             expense, = Account.search([
                     ('type.expense', '=', True),
-                    ])
+                    ('closed', '=', False),
+                    ], limit=1)
             payable, = Account.search([
                     ('type.payable', '=', True),
-                    ])
+                    ('closed', '=', False),
+                    ], limit=1)
             project1, = AnalyticAccount.search([
                     ('code', '=', 'P1'),
                     ])
@@ -419,10 +427,12 @@ class TestCase(CompanyTestMixin, ModuleTestCase):
                     ('type.receivable', '=', False),
                     ('type.expense', '=', False),
                     ('type.payable', '=', False),
+                    ('closed', '=', False),
                     ], limit=1)
             receivable, = Account.search([
                     ('type.receivable', '=', True),
-                    ])
+                    ('closed', '=', False),
+                    ], limit=1)
             project1, = AnalyticAccount.search([
                     ('code', '=', 'P1'),
                     ])
