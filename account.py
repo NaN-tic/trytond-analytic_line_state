@@ -17,6 +17,7 @@ class Configuration(metaclass=PoolMeta):
         help='If marked it will prevent to post a move to an account that '
         'has Pending Analytic accounts.')
 
+
 class Account(metaclass=PoolMeta):
     __name__ = 'account.account'
 
@@ -24,7 +25,7 @@ class Account(metaclass=PoolMeta):
         'analytic_account.account-required-account.account', 'account',
         'analytic_account', 'Analytic Required', domain=[
             ('type', '=', 'root'),
-            ('company', '=', Eval('company')),
+            ('company', '=', Eval('company', -1)),
             ('id', 'not in', Eval('analytic_forbidden')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
@@ -34,7 +35,7 @@ class Account(metaclass=PoolMeta):
         'analytic_account.account-forbidden-account.account', 'account',
         'analytic_account', 'Analytic Forbidden', domain=[
             ('type', '=', 'root'),
-            ('company', '=', Eval('company')),
+            ('company', '=', Eval('company', -1)),
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
@@ -44,7 +45,7 @@ class Account(metaclass=PoolMeta):
         'analytic_account.account-optional-account.account', 'account',
         'analytic_account', 'Analytic Optional', domain=[
             ('type', '=', 'root'),
-            ('company', '=', Eval('company')),
+            ('company', '=', Eval('company', -1)),
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_forbidden')),
             ], states={
