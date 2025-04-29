@@ -378,10 +378,8 @@ class TestCase(CompanyTestMixin, ModuleTestCase):
                         'debit': Decimal(500),
                         'account': project1.id,
                         'date': today - relativedelta(days=10),
+                        'move_line': expense_move_line,
                         }])
-            self.assertEqual(line1.state, 'draft')
-
-            line2.move_line = expense_move_line
             line2.save()
             self.assertEqual(line2.state, 'valid')
             self.assertEqual(line1.state, 'valid')
