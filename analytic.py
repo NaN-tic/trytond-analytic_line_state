@@ -19,7 +19,7 @@ class AnalyticAccount(metaclass=PoolMeta):
         'analytic_account.account-required-account.account',
         'analytic_account', 'account', 'Analytic Required', domain=[
             ('type', '!=', None),
-            ('company', '=', Eval('company')),
+            ('company', '=', Eval('company', -1)),
             ('id', 'not in', Eval('analytic_forbidden')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
@@ -29,7 +29,7 @@ class AnalyticAccount(metaclass=PoolMeta):
         'analytic_account.account-forbidden-account.account',
         'analytic_account', 'account', 'Analytic Forbidden', domain=[
             ('type', '!=', None),
-            ('company', '=', Eval('company')),
+            ('company', '=', Eval('company', -1)),
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_optional')),
             ], states={
@@ -39,7 +39,7 @@ class AnalyticAccount(metaclass=PoolMeta):
         'analytic_account.account-optional-account.account',
         'analytic_account', 'account', 'Analytic Optional', domain=[
             ('type', '!=', None),
-            ('company', '=', Eval('company')),
+            ('company', '=', Eval('company', -1)),
             ('id', 'not in', Eval('analytic_required')),
             ('id', 'not in', Eval('analytic_forbidden')),
             ], states={
@@ -191,7 +191,7 @@ class AnalyticLine(metaclass=PoolMeta):
             if 'state' not in field.depends:
                 field.depends.add('state')
 
-        company_domain = ('account.company', '=', Eval('internal_company'))
+        company_domain = ('account.company', '=', Eval('internal_company', -1))
         if not cls.move_line.domain:
             cls.move_line.domain = [company_domain]
         elif company_domain not in cls.move_line.domain:
