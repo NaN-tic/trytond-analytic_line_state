@@ -250,20 +250,10 @@ class AnalyticLine(metaclass=PoolMeta):
                     ))
 
     @classmethod
-    def check_modify(cls, lines):
-        '''
-        Check if the lines can be modified
-        '''
-        MoveLine = Pool().get('account.move.line')
-        move_lines = [l.move_line for l in lines if l.move_line]
-        MoveLine.check_modify(list(set(move_lines)))
-
-    @classmethod
     def create(cls, vlist):
         MoveLine = Pool().get('account.move.line')
 
         lines = super(AnalyticLine, cls).create(vlist)
-        cls.check_modify(lines)
 
         move_lines = list(set(l.move_line for l in lines if l.move_line))
         MoveLine.validate_analytic_lines(move_lines)
@@ -279,7 +269,6 @@ class AnalyticLine(metaclass=PoolMeta):
             if any(k not in cls._check_modify_exclude for k in vals):
                 lines_to_check.extend(lines)
             all_lines.extend(lines)
-        cls.check_modify(lines_to_check)
 
         move_lines = set([l.move_line for l in all_lines if l.move_line])
         super(AnalyticLine, cls).write(*args)
@@ -289,7 +278,6 @@ class AnalyticLine(metaclass=PoolMeta):
         for lines, vals in zip(actions, actions):
             if any(k not in cls._check_modify_exclude for k in vals):
                 lines_to_check.extend(lines)
-        cls.check_modify(lines_to_check)
         MoveLine.validate_analytic_lines(list(move_lines))
         todraft_lines = [l for l in all_lines
             if (not l.move_line and l.state != 'draft')]
@@ -302,8 +290,6 @@ class AnalyticLine(metaclass=PoolMeta):
     @classmethod
     def delete(cls, lines):
         MoveLine = Pool().get('account.move.line')
-
-        cls.check_modify(lines)
 
         move_lines = list(set([l.move_line for l in lines if l.move_line]))
         super(AnalyticLine, cls).delete(lines)
