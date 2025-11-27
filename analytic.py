@@ -10,6 +10,7 @@ from trytond.pyson import Eval, Or
 from trytond.transaction import Transaction
 from trytond.i18n import gettext
 from trytond.exceptions import UserError
+from trytond.model.exceptions import ValidationError
 
 
 class AnalyticAccount(metaclass=PoolMeta):
@@ -106,21 +107,21 @@ class AnalyticAccount(metaclass=PoolMeta):
         forbidden = set(self.analytic_forbidden)
         optional = set(self.analytic_optional)
         if required & forbidden:
-            raise UserError(gettext(
+            raise ValidationError(gettext(
                 'analytic_line_state.analytic_account_required_forbidden',
                     root=self.rec_name,
                     accounts=', '.join([a.rec_name
                             for a in (required & forbidden)])
                     ))
         if required & optional:
-            raise UserError(gettext(
+            raise ValidationError(gettext(
                 'analytic_line_state.analytic_account_required_optional',
                     root=self.rec_name,
                     accounts=', '.join([a.rec_name
                             for a in (required & optional)])
                     ))
         if forbidden & optional:
-            raise UserError(gettext(
+            raise ValidationError(gettext(
                 'analytic_line_state.analytic_account_forbidden_optional',
                     root=self.rec_name,
                     accounts=', '.join([a.rec_name
