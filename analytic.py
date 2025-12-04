@@ -244,7 +244,7 @@ class AnalyticLine(metaclass=PoolMeta):
         if (self.move_line and
                 self.move_line.account.analytic_constraint(self.account)
                 == 'forbidden'):
-            raise UserError(gettext(
+            raise ValidationError(gettext(
                 'analytic_line_state.move_line_account_analytic_forbidden',
                     line=self.rec_name,
                     account=self.move_line.account.rec_name,
