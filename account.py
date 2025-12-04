@@ -8,6 +8,7 @@ from trytond.pyson import Eval, Bool
 from trytond.i18n import gettext
 from trytond.exceptions import UserError
 from trytond.model.exceptions import AccessError
+from trytond.model.exceptions import ValidationError
 from trytond.transaction import Transaction
 
 
@@ -94,21 +95,21 @@ class Account(metaclass=PoolMeta):
         forbidden = set(self.analytic_forbidden)
         optional = set(self.analytic_optional)
         if required & forbidden:
-            raise UserError(gettext(
+            raise ValidationError(gettext(
                 'analytic_line_state.analytic_account_required_forbidden',
                     account=self.rec_name,
                     roots=', '.join(a.rec_name
                         for a in (required & forbidden))
                     ))
         if required & optional:
-            raise UserError(gettext(
+            raise ValidationError(gettext(
                 'analytic_line_state.analytic_account_required_optional',
                     account=self.rec_name,
                     roots=', '.join(a.rec_name
                         for a in (required & optional))
                     ))
         if forbidden & optional:
-            raise UserError(gettext(
+            raise ValidationError(gettext(
                 'analytic_line_state.analytic_account_forbidden_optional',
                     account=self.rec_name,
                     roots=', '.join(a.rec_name
@@ -212,7 +213,7 @@ class MoveLine(metaclass=PoolMeta):
         config = Config(1)
         if config.validate_analytic:
             if self.account.analytic_pending_accounts:
-                raise UserError(gettext(
+                raise ValidationError(gettext(
                     'analytic_line_state.account_analytic_not_configured',
                         line=self.rec_name,
                         account=self.account.rec_name,
