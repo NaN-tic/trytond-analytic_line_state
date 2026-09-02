@@ -197,13 +197,6 @@ class AnalyticLine(metaclass=PoolMeta):
         elif company_domain not in cls.move_line.domain:
             cls.move_line.domain.append(company_domain)
 
-        cls.move_line.required = False
-        cls.move_line.states = {
-            'required': Eval('state') != 'draft',
-            'readonly': Eval('state') != 'draft',
-            }
-        cls.move_line.depends |= {'internal_company', 'state'}
-
     @staticmethod
     def default_internal_company():
         return Transaction().context.get('company')
