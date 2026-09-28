@@ -9,7 +9,7 @@ from trytond.i18n import gettext
 from trytond.exceptions import UserError
 from trytond.model.exceptions import AccessError
 from trytond.model.exceptions import ValidationError
-from trytond.transaction import Transaction
+from trytond.transaction import Transaction, without_check_access
 
 
 class Configuration(metaclass=PoolMeta):
@@ -231,13 +231,15 @@ class MoveLine(metaclass=PoolMeta):
                     todraft += [al for al in analytic_lines
                         if al.state != 'draft']
         if todraft:
-            AnalyticLine.write(todraft, {
-                    'state': 'draft',
-                    })
+            with without_check_access():
+                AnalyticLine.write(todraft, {
+                        'state': 'draft',
+                        })
         if tovalid:
-            AnalyticLine.write(tovalid, {
-                    'state': 'valid',
-                    })
+            with without_check_access():
+                AnalyticLine.write(tovalid, {
+                        'state': 'valid',
+                        })
 
     @classmethod
     def create(cls, vlist):
@@ -255,9 +257,10 @@ class MoveLine(metaclass=PoolMeta):
     def delete(cls, lines):
         AnalyticLine = Pool().get('analytic_account.line')
         todraft_lines = [al for line in lines for al in line.analytic_lines]
-        AnalyticLine.write(todraft_lines, {
-                'state': 'draft',
-                })
+        with without_check_access():
+            AnalyticLine.write(todraft_lines, {
+                    'state': 'draft',
+                    })
 
         from_statement = Transaction().context.get(
             'from_account_bank_statement_line', False)

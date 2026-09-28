@@ -7,7 +7,7 @@ from sql.conditionals import Coalesce
 from trytond.model import ModelSQL, fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, Or
-from trytond.transaction import Transaction
+from trytond.transaction import Transaction, without_check_access
 from trytond.i18n import gettext
 from trytond.model.exceptions import ValidationError
 
@@ -276,9 +276,10 @@ class AnalyticLine(metaclass=PoolMeta):
             if (not l.move_line and l.state != 'draft')]
         # Call super to avoid_recursion error:
         if todraft_lines:
-            super(AnalyticLine, cls).write(todraft_lines, {
-                    'state': 'draft',
-                    })
+            with without_check_access():
+                super(AnalyticLine, cls).write(todraft_lines, {
+                        'state': 'draft',
+                        })
 
     @classmethod
     def delete(cls, lines):
